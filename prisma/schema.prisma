@@ -1,0 +1,1430 @@
+generator client {
+  provider = "prisma-client-js"
+  // Gerar o client na pasta .prisma dentro de node_modules (recomendado).
+  output   = "../node_modules/.prisma/client"
+}
+
+datasource db {
+  provider     = "mysql"
+  url          = env("DATABASE_URL")
+  relationMode = "prisma"
+}
+model adiantamento {
+  id            Int            @id @default(autoincrement())
+  data          DateTime
+  saida         String
+  observacao    String?        @db.Text
+  oculto        Boolean        @default(false)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime
+  userId        String?
+  caixaViagemId Int?
+  colaboradorId Int?
+  nome          String         @db.VarChar(255)
+  caixaViagem   caixaviagem?   @relation(fields: [caixaViagemId], references: [id])
+  colaborador   colaboradores? @relation(fields: [colaboradorId], references: [id])
+
+  @@index([caixaViagemId], map: "Adiantamento_caixaViagemId_idx")
+  @@index([colaboradorId], map: "Adiantamento_colaboradorId_idx")
+  @@index([userId], map: "Adiantamento_userId_idx")
+}
+
+model artigos_kb {
+  id              Int      @id @default(autoincrement())
+  titulo          String   @db.VarChar(255)
+  slug            String   @unique @db.VarChar(255)
+  conteudo        String   @db.LongText
+  categoria       String?  @db.VarChar(100)
+  autor_id        String?  @db.VarChar(255)
+  autor_nome      String?  @db.VarChar(255)
+  visualizacoes   Int      @default(0)
+  util_count      Int      @default(0)
+  inutilCount     Int      @default(0)
+  tags            String?  @db.Text
+  ativo           Boolean  @default(true)
+  data_criacao    DateTime @default(now())
+  data_modificado DateTime @default(now())
+
+  @@index([ativo])
+  @@index([categoria])
+  @@index([data_criacao])
+}
+
+model audit_logs {
+  id                   Int                 @id @default(autoincrement())
+  entidade             String              @db.VarChar(50)
+  operacao             audit_logs_operacao
+  entidadeId           Int
+  usuarioId            String?             @db.VarChar(36)
+  usuario              String?             @db.VarChar(255)
+  descricao            String?             @db.LongText
+  alteracoesAnteriores String?             @db.LongText
+  alteracoesNovas      String?             @db.LongText
+  createdAt            DateTime            @default(now())
+
+  @@index([createdAt])
+  @@index([entidade])
+  @@index([operacao])
+  @@index([usuarioId])
+}
+
+model auditoria_suporte {
+  id               Int      @id @default(autoincrement())
+  ticket_id        Int?
+  usuario_id       String?  @db.VarChar(255)
+  usuario_nome     String?  @db.VarChar(255)
+  acao             String   @db.VarChar(255)
+  detalhes         String?  @db.LongText
+  tabela_afetada   String?  @db.VarChar(100)
+  registro_id      Int?
+  dados_anteriores String?  @db.LongText
+  dados_novos      String?  @db.LongText
+  data_acao        DateTime @default(now())
+
+  @@index([acao])
+  @@index([data_acao])
+  @@index([ticket_id])
+  @@index([usuario_id])
+}
+
+model caixaviagem {
+  id            Int                @id @default(autoincrement())
+  empresaId     Int?
+  funcionarioId Int?
+  userId        String?
+  destino       String
+  data          DateTime
+  oculto        Boolean            @default(false)
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime
+  veiculoId     Int?
+  numeroCaixa   Int                @default(1)
+  observacao    String?
+  saldoAnterior Decimal            @default(0.00) @db.Decimal(10, 2)
+  empresa       empresas?          @relation(fields: [empresaId], references: [id])
+  funcionario   colaboradores?     @relation(fields: [funcionarioId], references: [id])
+  user          users?             @relation(fields: [userId], references: [id])
+  veiculo       patrimonios?       @relation(fields: [veiculoId], references: [id])
+  lancamentos   viagemlancamento[]
+  adiantamentos adiantamento[]
+
+  @@index([empresaId], map: "CaixaViagem_empresaId_idx")
+  @@index([funcionarioId], map: "CaixaViagem_funcionarioId_idx")
+  @@index([userId], map: "CaixaViagem_userId_idx")
+  @@index([veiculoId], map: "CaixaViagem_veiculoId_idx")
+}
+
+model categorias_suporte {
+  id           Int      @id @default(autoincrement())
+  nome         String   @unique @db.VarChar(100)
+  descricao    String?  @db.Text
+  icone        String?  @db.VarChar(100)
+  ativo        Boolean  @default(true)
+  data_criacao DateTime @default(now())
+
+  @@index([ativo])
+}
+
+model colaboradores {
+  id                                   Int                     @id @default(autoincrement())
+  nome                                 String?
+  sobrenome                            String?
+  idade                                Int?
+  dataNascimento                       DateTime?
+  numeroCelular                        String?
+  numeroEmergencia                     String?
+  setor                                String?
+  cargo                                String?
+  cpf                                  String?                 @unique
+  identidade                           String?
+  pis                                  String?
+  ctps                                 String?
+  cnhNumero                            String?
+  cnhVencimento                        DateTime?
+  endereco                             String?
+  bairro                               String?
+  cidade                               String?
+  cep                                  String?
+  uf                                   String?
+  banco                                String?
+  bancoNumero                          String?
+  contaNumero                          String?
+  agenciaNumero                        String?
+  tipoVale                             String?
+  vt1Valor                             Float?
+  tipo                                 String?
+  comissao                             Float?
+  admissao                             DateTime?
+  demissao                             DateTime?
+  oculto                               Boolean                 @default(false)
+  createdAt                            DateTime                @default(now())
+  updatedAt                            DateTime
+  empresaId                            Int?
+  conjuge                              String?
+  email                                String?
+  emailProfissional                    String?
+  contato                              String?
+  estadoCivil                          String?
+  filiacao                             String?
+  numeroEmpresa                        String?
+  userId                               String?                 @unique
+  salario                              Decimal?                @db.Decimal(10, 2)
+  foto                                 String?                 @db.LongText
+  empresa                              empresas?               @relation(fields: [empresaId], references: [id])
+  patrimonios                          patrimonios[]
+  movimentacoesRealizadas              movimentacoes[]         @relation("MovimentacaoAutor")
+  movimentacoesComoResponsavelAnterior movimentacoes[]         @relation("MovimentacaoResponsavelAnterior")
+  movimentacoesComoResponsavelNovo     movimentacoes[]         @relation("MovimentacaoResponsavelNovo")
+  caixasViagem                         caixaviagem[]
+  adiantamentos                        adiantamento[]
+  horarioTrabalho                      horarios_trabalho?
+  contaCorrenteHoras                   conta_corrente_horas?
+  registrosBancoHoras                  registros_banco_horas[]
+  contaCorrentes                       conta_corrente[]
+  epiCargoId                           Int?
+  epiCargo                             epi_cargos?             @relation("ColaboradorEpiCargo", fields: [epiCargoId], references: [id])
+  epiMovimentacoes                     epi_movimentacoes[]
+  isGestor                             Boolean                 @default(false)
+  gestorId                             Int?
+  gestor                               colaboradores? @relation("GestorSubordinados", fields: [gestorId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  subordinados                         colaboradores[]         @relation("GestorSubordinados")
+  epiObservacoes                       String?                 @db.Text
+  gestorEmpresas                       gestor_empresas[]
+
+  @@index([empresaId])
+  @@index([userId])
+  @@index([epiCargoId])
+  @@index([gestorId])
+}
+
+model comentarios {
+  id              String           @id
+  ticketId        String
+  autorNome       String           @db.VarChar(255)
+  autorEmail      String?          @db.VarChar(255)
+  conteudo        String           @db.LongText
+  tipo            comentarios_tipo @default(COMENTARIO)
+  interno         Boolean          @default(false)
+  anexos          String?          @db.LongText
+  dataCriacao     DateTime         @default(now())
+  dataAtualizacao DateTime
+
+  @@index([autorEmail])
+  @@index([dataCriacao])
+  @@index([ticketId])
+  @@index([tipo])
+}
+
+model conta_corrente {
+  id                Int            @id @default(autoincrement())
+  empresaId         Int?
+  colaboradorId     Int?
+  data              DateTime
+  tipo              String
+  fornecedorCliente String
+  observacao        String         @db.Text
+  setor             String?
+  oculto            Boolean        @default(false)
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime
+  userId            String?
+  empresa           empresas?      @relation(fields: [empresaId], references: [id])
+  colaborador       colaboradores? @relation(fields: [colaboradorId], references: [id])
+  user              users?         @relation(fields: [userId], references: [id])
+  lancamentos       lancamentos[]
+
+  @@index([colaboradorId])
+  @@index([empresaId])
+  @@index([userId])
+}
+
+model conta_corrente_horas {
+  id               Int            @id @default(autoincrement())
+  funcionario_nome String         @db.VarChar(255)
+  total_positivo   Decimal        @default(0.00) @db.Decimal(10, 2)
+  total_negativo   Decimal        @default(0.00) @db.Decimal(10, 2)
+  saldo            Decimal        @default(0.00) @db.Decimal(10, 2)
+  ultimo_registro  DateTime?
+  colaborador_id   Int            @unique
+  colaborador      colaboradores? @relation(fields: [colaborador_id], references: [id])
+
+  @@index([colaborador_id])
+}
+
+model contratos {
+  id                       Int                 @id @default(autoincrement())
+  numero                   String              @db.VarChar(255)
+  titulo                   String              @db.VarChar(255)
+  fornecedor               String              @db.VarChar(255)
+  valor                    Decimal             @db.Decimal(15, 2)
+  data_inicio              DateTime
+  data_vencimento          DateTime?
+  departamento             String              @db.VarChar(255)
+  responsavel              String              @db.VarChar(255)
+  descricao                String?             @db.LongText
+  status                   String              @default("ativo") @db.VarChar(50)
+  vencimento_indeterminado Boolean             @default(false)
+  renovacao_automatica     Boolean?            @default(false)
+  alertas_ativos           Boolean?            @default(true)
+  observacao               String?             @db.Text
+  tipo_contrato            String?             @db.VarChar(50)
+  data_criacao             DateTime            @default(now())
+  data_modificado          DateTime            @default(now())
+  arquivos                 contrato_arquivos[]
+
+  @@index([data_criacao])
+  @@index([data_vencimento])
+  @@index([departamento])
+  @@index([fornecedor])
+  @@index([numero])
+  @@index([status])
+}
+
+model contrato_arquivos {
+  id              Int        @id @default(autoincrement())
+  contrato_id     Int
+  nome_original   String     @db.VarChar(255)
+  nome            String     @db.VarChar(255)
+  caminho_arquivo String     @db.VarChar(255)
+  tipo_arquivo    String?    @db.VarChar(100)
+  tamanho_arquivo Int?
+  data_upload     DateTime   @default(now())
+  contrato        contratos? @relation(fields: [contrato_id], references: [id])
+
+  @@index([contrato_id])
+}
+
+model empresas {
+  id             Int              @id @default(autoincrement())
+  numero         String?
+  nomeEmpresa    String
+  cnpj           String?          @unique
+  cidade         String?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime
+  oculto         Boolean          @default(false)
+  criadoPorId    String?
+  colaboradores  colaboradores[]
+  contaCorrentes conta_corrente[]
+  caixasViagem   caixaviagem[]
+  criadoPor               users?                      @relation(fields: [criadoPorId], references: [id])
+  epiMovimentacoes        epi_movimentacoes[]         @relation("EmpresaEpiMovimentacoes")
+  epiEstoqueMovimentacoes epi_estoque_movimentacoes[] @relation("EmpresaEpiEstoqueMovs")
+  epiEstoqueFilial        epi_estoque_filial[]        @relation("EmpresaEpiEstoqueFilial")
+  gestorEmpresas          gestor_empresas[]
+
+  @@index([criadoPorId])
+}
+
+model gestor_empresas {
+  id            Int           @id @default(autoincrement())
+  colaboradorId Int
+  empresaId     Int
+  colaborador   colaboradores @relation(fields: [colaboradorId], references: [id])
+  empresa       empresas      @relation(fields: [empresaId], references: [id])
+
+  @@unique([colaboradorId, empresaId])
+  @@index([colaboradorId])
+  @@index([empresaId])
+}
+
+model eventos {
+  id            Int       @id @default(autoincrement())
+  tipo          String    @db.VarChar(100)
+  titulo        String    @db.VarChar(255)
+  descricao     String?   @db.LongText
+  dataInicio    DateTime
+  dataFim       DateTime?
+  empresaId     Int?
+  responsavelId Int?
+  cor           String?   @db.VarChar(50)
+  criadoPorId   String?
+  oculto        Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime
+
+  @@index([criadoPorId])
+  @@index([empresaId])
+  @@index([responsavelId])
+}
+
+model foto_colaborador {
+  id            Int      @id @default(autoincrement())
+  colaboradorId Int      @unique
+  foto          String   @db.LongText
+  nomeOriginal  String?  @db.VarChar(255)
+  mimeType      String?  @db.VarChar(50)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime
+
+  @@index([colaboradorId])
+}
+
+model historico_tickets {
+  id              String                       @id
+  ticketId        String
+  tipoEvento      historico_tickets_tipoEvento
+  descricao       String                       @db.LongText
+  autorNome       String?                      @db.VarChar(255)
+  autorEmail      String?                      @db.VarChar(255)
+  dadosAnteriores String?                      @db.LongText
+  dadosNovos      String?                      @db.LongText
+  dataCriacao     DateTime                     @default(now())
+  dataAtualizacao DateTime
+
+  @@index([autorEmail])
+  @@index([dataCriacao])
+  @@index([ticketId])
+  @@index([tipoEvento])
+}
+
+model horarios_trabalho {
+  id              Int           @id @default(autoincrement())
+  colaboradorId   Int           @unique
+  horaInicio      String        @default("07:30")
+  horaFim         String        @default("17:30")
+  intervaloAlmo_o Int           @default(66) @map("intervaloAlmoço")
+  trabalhaSegunda Boolean       @default(true)
+  trabalhaTerca   Boolean       @default(true)
+  trabalhaQuarta  Boolean       @default(true)
+  trabalhaQuinta  Boolean       @default(true)
+  trabalhaSexa    Boolean       @default(true)
+  trabalhaSabado  Boolean       @default(false)
+  trabalhaDomingo Boolean       @default(false)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime
+  colaborador     colaboradores @relation(fields: [colaboradorId], references: [id], map: "horarios_trabalho_colaboradorId_fkey")
+
+  @@index([colaboradorId])
+}
+
+model lancamentos {
+  id              Int            @id @default(autoincrement())
+  contaCorrenteId Int
+  data            DateTime
+  numeroDocumento String?
+  observacao      String         @db.Text
+  credito         String?
+  debito          String?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime
+  contaCorrente   conta_corrente @relation(fields: [contaCorrenteId], references: [id])
+
+  @@index([contaCorrenteId])
+}
+
+model logpatrimonio {
+  id           Int      @id @default(autoincrement())
+  acao         String
+  patrimonioId Int?
+  userId       Int
+  detalhes     String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime
+}
+
+model manuais {
+  id              Int      @id @default(autoincrement())
+  assunto         String   @db.VarChar(255)
+  departamento    String   @db.VarChar(100)
+  descricao       String?  @db.LongText
+  usuario_id      Int?
+  usuario_nome    String?  @db.VarChar(255)
+  restrito        Boolean  @default(false)
+  ativo           Boolean  @default(true)
+  data_upload     DateTime @default(now())
+  data_modificado DateTime @default(now())
+
+  @@index([ativo, data_modificado])
+  @@index([ativo])
+  @@index([data_upload])
+  @@index([departamento])
+  @@index([usuario_id])
+}
+
+model manual {
+  id              Int      @id @default(autoincrement())
+  assunto         String   @db.VarChar(255)
+  departamento    String   @db.VarChar(100)
+  descricao       String   @db.Text
+  usuario_id      String?  @db.VarChar(36)
+  usuario_nome    String?  @db.VarChar(100)
+  restrito        Boolean  @default(false)
+  ativo           Boolean  @default(true)
+  data_upload     DateTime @default(now())
+  data_modificado DateTime @default(now())
+
+  @@index([ativo], map: "idx_manual_ativo")
+  @@index([data_upload], map: "idx_manual_data_upload")
+  @@index([departamento], map: "idx_manual_departamento")
+  @@index([usuario_id], map: "idx_manual_usuario_id")
+}
+
+model manual_arquivo {
+  id              Int      @id @default(autoincrement())
+  manual_id       Int
+  nome_original   String   @db.VarChar(255)
+  caminho_arquivo String   @db.VarChar(255)
+  tipo_arquivo    String?  @db.VarChar(50)
+  tamanho_arquivo Int?
+  data_upload     DateTime @default(now())
+
+  @@index([manual_id], map: "manual_id")
+}
+
+model manual_arquivos {
+  id              Int      @id @default(autoincrement())
+  manual_id       Int
+  nome_original   String   @db.VarChar(255)
+  caminho_arquivo String   @db.VarChar(255)
+  tipo_arquivo    String?  @db.VarChar(100)
+  tamanho_arquivo Int?
+  data_upload     DateTime @default(now())
+
+  @@index([data_upload])
+  @@index([manual_id])
+}
+
+model erros_solucoes {
+  id              Int      @id @default(autoincrement())
+  titulo          String   @db.VarChar(255)
+  categoria       String   @db.VarChar(100)
+  descricao       String?  @db.LongText
+  solucao         String?  @db.LongText
+  usuario_id      Int?
+  usuario_nome    String?  @db.VarChar(255)
+  tags            String?  @db.Text
+  restrito        Boolean  @default(false)
+  ativo           Boolean  @default(true)
+  data_upload     DateTime @default(now())
+  data_modificado DateTime @default(now())
+
+  @@index([restrito])
+  @@index([ativo])
+  @@index([categoria])
+  @@index([data_upload])
+  @@index([usuario_id])
+}
+
+model erro_arquivos {
+  id              Int      @id @default(autoincrement())
+  erro_id         Int
+  nome_original   String   @db.VarChar(255)
+  caminho_arquivo String   @db.VarChar(255)
+  tipo_arquivo    String?  @db.VarChar(100)
+  tamanho_arquivo Int?
+  data_upload     DateTime @default(now())
+
+  @@index([data_upload])
+  @@index([erro_id])
+}
+
+model movimentacoes {
+  id                    Int            @id @default(autoincrement())
+  patrimonioId          Int
+  tipo                  String         @db.VarChar(255)
+  createdAt             DateTime       @default(now())
+  updatedAt             DateTime
+  localizacaoAnterior   String?        @db.VarChar(255)
+  responsavelAnteriorId Int?
+  autorId               Int?
+  localizacaoNova       String?        @db.VarChar(255)
+  responsavelNovoId     Int?
+  kmAnterior            String?        @db.VarChar(20)
+  kmNovo                String?        @db.VarChar(20)
+  patrimonio            patrimonios    @relation(fields: [patrimonioId], references: [id])
+  autor                 colaboradores? @relation("MovimentacaoAutor", fields: [autorId], references: [id])
+  responsavelAnterior   colaboradores? @relation("MovimentacaoResponsavelAnterior", fields: [responsavelAnteriorId], references: [id])
+  responsavelNovo       colaboradores? @relation("MovimentacaoResponsavelNovo", fields: [responsavelNovoId], references: [id])
+
+  @@index([autorId])
+  @@index([patrimonioId])
+  @@index([responsavelAnteriorId])
+  @@index([responsavelNovoId])
+}
+
+model movimentacao_veiculos {
+  id                    Int       @id @default(autoincrement())
+  patrimonioId          Int
+  responsavelAnteriorId Int?
+  responsavelNovoId     Int?
+  autorId               Int?
+  tipo                  String    @db.VarChar(100)
+  justificativa         String?   @db.VarChar(500)
+  dataInicio            DateTime  @default(now()) @db.DateTime(0)
+  dataFim               DateTime? @db.DateTime(0)
+  createdAt             DateTime  @default(now()) @db.DateTime(0)
+  updatedAt             DateTime  @default(now()) @db.DateTime(0)
+
+  @@index([autorId], map: "fk_movveic_autor")
+  @@index([patrimonioId], map: "idx_movveic_patrimonio")
+  @@index([responsavelAnteriorId], map: "idx_movveic_resp_anterior")
+  @@index([responsavelNovoId], map: "idx_movveic_resp_novo")
+}
+
+model ncm {
+  id                Int      @id @default(autoincrement())
+  codigo_ncm        String   @db.VarChar(20)
+  categoria_cliente String   @db.VarChar(100)
+  empresa           String   @db.VarChar(100)
+  icms_dentro       Decimal  @default(0.00) @db.Decimal(10, 2)
+  icms_fora         Decimal  @default(0.00) @db.Decimal(10, 2)
+  fora_st           String   @default("Não") @db.VarChar(20)
+  fora_difal        String   @default("Não") @db.VarChar(20)
+  monofasico        String   @default("Não") @db.VarChar(20)
+  pis               Decimal  @default(0.00) @db.Decimal(10, 2)
+  cofins            Decimal  @default(0.00) @db.Decimal(10, 2)
+  ipi               Decimal  @default(0.00) @db.Decimal(10, 2)
+  bc_pis_cof        String   @default("") @db.VarChar(10)
+  bc_icms           String   @default("") @db.VarChar(10)
+  mva               Decimal  @default(0.00) @db.Decimal(10, 2)
+  uf_emissor        String   @db.VarChar(2)
+  uf_destino        String   @db.VarChar(2)
+  aliquota          Decimal  @default(0.00) @db.Decimal(10, 2)
+  cst_origem        String   @default("") @db.VarChar(10)
+  obs_fonte         String?  @db.Text
+  usuario_id        Int?
+  usuario_nome      String?  @db.VarChar(255)
+  data_upload       DateTime @default(now())
+  data_modificado   DateTime @default(now())
+  ativo             Boolean  @default(true)
+
+  @@unique([codigo_ncm, categoria_cliente, empresa, uf_emissor, uf_destino, cst_origem])
+  @@index([ativo])
+  @@index([categoria_cliente])
+  @@index([codigo_ncm])
+  @@index([data_upload])
+  @@index([empresa])
+  @@index([uf_destino])
+  @@index([uf_emissor])
+}
+
+model notas_internas {
+  id              String                  @id
+  ticketId        String
+  autorNome       String                  @db.VarChar(255)
+  autorEmail      String                  @db.VarChar(255)
+  conteudo        String                  @db.LongText
+  tipoAcao        notas_internas_tipoAcao
+  dataCriacao     DateTime                @default(now())
+  dataAtualizacao DateTime
+
+  @@index([autorEmail])
+  @@index([dataCriacao])
+  @@index([ticketId])
+  @@index([tipoAcao])
+}
+
+model notificacao_preferencias {
+  id                    String   @id
+  usuarioId             String   @unique
+  notifyNovaAtribuicao  Boolean  @default(true)
+  notifyMudancaStatus   Boolean  @default(true)
+  notifyNovoComentario  Boolean  @default(true)
+  notifyEscalacaoPriori Boolean  @default(true)
+  notificacoesEmail     Boolean  @default(true)
+  notificacoesInApp     Boolean  @default(true)
+  notificarSeusTkets    Boolean  @default(true)
+  notificarAtribuidos   Boolean  @default(true)
+  dataCriacao           DateTime @default(now())
+  dataAtualizacao       DateTime
+
+  @@index([usuarioId])
+}
+
+model notificacoes {
+  id              String            @id
+  usuarioId       String
+  ticketId        String?
+  tipo            notificacoes_tipo
+  titulo          String            @db.VarChar(255)
+  mensagem        String            @db.LongText
+  lida            Boolean           @default(false)
+  ticketTitulo    String?           @db.VarChar(255)
+  autorNome       String?           @db.VarChar(255)
+  dataCriacao     DateTime          @default(now())
+  dataAtualizacao DateTime
+
+  @@index([dataCriacao])
+  @@index([lida])
+  @@index([ticketId])
+  @@index([usuarioId])
+  @@index([usuarioId, lida, dataCriacao])
+}
+
+model patrimonios {
+  id                   Int             @id @default(autoincrement())
+  nome                 String          @db.VarChar(255)
+  descricao            String?         @db.Text
+  data_aquisicao       DateTime?
+  valor                String?
+  status               String?
+  fabricante           String          @db.VarChar(255)
+  localizacao          String          @db.VarChar(255)
+  tipo                 String          @db.VarChar(255)
+  responsavelId        Int
+  createdAt            DateTime        @default(now())
+  updatedAt            DateTime
+  oculto               Boolean         @default(false)
+  anoModelo            Int?
+  dataGarantia         DateTime?
+  dataNotaFiscal       DateTime?
+  dataVencimentoSeguro DateTime?
+  locado               Boolean         @default(false)
+  numeroNotaFiscal     String?         @db.VarChar(255)
+  numeroSerie          String?         @db.VarChar(255)
+  placa                String?         @db.VarChar(20)
+  proprietario         String?         @db.VarChar(255)
+  renavan              String?         @db.VarChar(20)
+  segurado             Boolean         @default(false)
+  seguradora           String?         @db.VarChar(255)
+  franquia             String?         @db.VarChar(255)
+  kmEntrega            String?
+  modelo               String?         @db.VarChar(255)
+  numeroLinha          String?         @db.VarChar(20)
+  operadora            String?         @db.VarChar(100)
+  responsavel          colaboradores   @relation(fields: [responsavelId], references: [id])
+  movimentacoes        movimentacoes[]
+  caixasViagem         caixaviagem[]
+
+  @@index([responsavelId])
+}
+
+model permission {
+  id        Int     @id @default(autoincrement())
+  userId    String
+  page      String
+  canAccess Boolean @default(false)
+  canEdit   Boolean @default(false)
+  canDelete Boolean @default(false)
+
+  @@unique([userId, page], map: "Permission_userId_page_key")
+}
+
+model product_categories {
+  id        Int      @id @default(autoincrement())
+  nome      String   @unique(map: "nome") @db.VarChar(100)
+  descricao String?  @db.LongText
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+}
+
+model products {
+  id            Int             @id @default(autoincrement())
+  codigoInterno String          @unique(map: "codigoInterno") @db.VarChar(50)
+  nome          String          @db.VarChar(255)
+  categoria     String          @db.VarChar(100)
+  descricao     String?         @db.LongText
+  unidade       String          @db.VarChar(20)
+  estoqueMinimo Int             @default(0)
+  estoqueAtual  Int             @default(0)
+  status        products_status @default(ATIVO)
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @default(now())
+
+  @@index([categoria])
+  @@index([createdAt])
+  @@index([status])
+}
+
+model registros_banco_horas {
+  id                Int            @id @default(autoincrement())
+  colaborador_id    Int
+  funcionario_nome  String         @db.VarChar(255)
+  tipo              String         @db.VarChar(50)
+  acao              String?        @db.VarChar(100)
+  data              DateTime
+  hora_inicio       String?        @db.VarChar(5)
+  hora_fim          String?        @db.VarChar(5)
+  intervalo_minutos Int            @default(0)
+  horas_corrigidas  Decimal?       @db.Decimal(10, 2)
+  observacao        String?        @db.Text
+  usuario_id        Int?
+  usuario_nome      String?        @db.VarChar(255)
+  data_criacao      DateTime       @default(now())
+  data_modificado   DateTime
+  log_edicao        String?        @db.Text
+  termo_importado   Boolean        @default(false)
+  colaborador       colaboradores? @relation(fields: [colaborador_id], references: [id])
+
+  @@index([colaborador_id])
+  @@index([data])
+  @@index([tipo])
+}
+
+model relatorios {
+  id              Int      @id @default(autoincrement())
+  nome            String   @db.VarChar(255)
+  departamento    String   @db.VarChar(255)
+  descricao       String?  @db.Text
+  query_sql       String   @db.LongText
+  restrito        Boolean  @default(false)
+  usuario_id      Int?
+  usuario_nome    String?  @db.VarChar(255)
+  banco_dados     String   @default("oracle") @db.VarChar(10)
+  parametros      String?  @db.LongText
+  data_criacao    DateTime @default(now())
+  data_modificado DateTime @default(now())
+  ativo           Boolean  @default(true)
+
+  @@index([ativo])
+  @@index([departamento])
+  @@index([restrito])
+  @@index([usuario_id])
+}
+
+model relatorio_permissions {
+  id          Int     @id @default(autoincrement())
+  relatorio_id Int
+  user_id     String  @db.VarChar(36)
+  createdAt   DateTime @default(now())
+
+  @@unique([relatorio_id, user_id])
+  @@index([relatorio_id])
+  @@index([user_id])
+}
+
+model session {
+  id        Int      @id @default(autoincrement())
+  sessionId String   @db.LongText
+  userId    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime
+}
+
+model sgq_activity_logs {
+  id         Int                          @id @default(autoincrement())
+  action     sgq_activity_logs_action     @default(CREATE)
+  entityType sgq_activity_logs_entityType @default(DOCUMENT)
+  entityId   Int
+  entityName String?                      @db.VarChar(255)
+  userId     String                       @db.VarChar(255)
+  userName   String                       @db.VarChar(255)
+  details    String?                      @db.LongText
+  ipAddress  String?                      @db.VarChar(45)
+  createdAt  DateTime                     @default(now())
+
+  @@index([action])
+  @@index([createdAt])
+  @@index([entityId])
+  @@index([entityType])
+  @@index([userId])
+}
+
+model sgq_corrective_actions {
+  id                Int                           @id @default(autoincrement())
+  ncId              Int
+  ncCode            String                        @db.VarChar(50)
+  description       String                        @db.LongText
+  ownerId           String                        @db.VarChar(255)
+  ownerName         String                        @db.VarChar(255)
+  deadline          DateTime?
+  completionDate    DateTime?
+  status            sgq_corrective_actions_status @default(PENDING)
+  evidenceFiles     String?                       @db.LongText
+  verificationNotes String?                       @db.LongText
+  createdAt         DateTime                      @default(now())
+  updatedAt         DateTime
+
+  @@index([deadline])
+  @@index([ncCode])
+  @@index([ncId])
+  @@index([ownerId])
+  @@index([status])
+}
+
+model sgq_document_versions {
+  id              Int                          @id @default(autoincrement())
+  documentId      Int
+  documentCode    String                       @db.VarChar(50)
+  versionNumber   String                       @db.VarChar(20)
+  fileUrl         String?                      @db.LongText
+  changeSummary   String?                      @db.LongText
+  changeReason    String?                      @db.LongText
+  status          sgq_document_versions_status @default(PENDING_APPROVAL)
+  approvedById    String?                      @db.VarChar(255)
+  approvedByName  String?                      @db.VarChar(255)
+  approvalDate    DateTime?
+  rejectionReason String?                      @db.LongText
+  createdAt       DateTime                     @default(now())
+  updatedAt       DateTime
+
+  @@unique([documentId, versionNumber])
+  @@index([documentCode])
+  @@index([documentId])
+  @@index([status])
+  @@index([versionNumber])
+}
+
+model sgq_documents {
+  id               Int                  @id @default(autoincrement())
+  code             String               @unique @db.VarChar(50)
+  title            String               @db.VarChar(255)
+  type             sgq_documents_type   @default(PROCEDURE)
+  description      String?              @db.LongText
+  processId        Int?
+  processName      String?              @db.VarChar(255)
+  ownerId          String               @db.VarChar(255)
+  ownerName        String               @db.VarChar(255)
+  currentVersion   String               @default("1.0") @db.VarChar(20)
+  status           sgq_documents_status @default(DRAFT)
+  issueDate        DateTime?
+  reviewDate       DateTime?
+  fileUrl          String?              @db.LongText
+  attachments      String?              @db.LongText
+  approvedById     String?              @db.VarChar(255)
+  approvedByName   String?              @db.VarChar(255)
+  approvalDate     DateTime?
+  approvalComments String?              @db.LongText
+  createdAt        DateTime             @default(now())
+  updatedAt        DateTime
+  createdBy        String?              @db.VarChar(255)
+
+  @@index([approvedById])
+  @@index([code])
+  @@index([createdAt])
+  @@index([ownerId])
+  @@index([processId])
+  @@index([reviewDate])
+  @@index([status])
+  @@index([type])
+}
+
+model sgq_help_articles {
+  id            Int                        @id @default(autoincrement())
+  title         String                     @db.VarChar(255)
+  category      sgq_help_articles_category @default(TUTORIAL)
+  content       String                     @db.LongText
+  steps         String?                    @db.LongText
+  isoClause     String?                    @db.VarChar(50)
+  relatedModule String?                    @db.VarChar(50)
+  displayOrder  Int                        @default(999)
+  active        Boolean                    @default(true)
+  createdAt     DateTime                   @default(now())
+  updatedAt     DateTime
+
+  @@index([active])
+  @@index([category])
+  @@index([displayOrder])
+}
+
+model sgq_non_conformities {
+  id                Int                         @id @default(autoincrement())
+  code              String                      @unique @db.VarChar(50)
+  title             String                      @db.VarChar(255)
+  description       String                      @db.LongText
+  origin            sgq_non_conformities_origin @default(INTERNAL)
+  processId         Int?
+  processName       String?                     @db.VarChar(255)
+  ownerId           String                      @db.VarChar(255)
+  ownerName         String                      @db.VarChar(255)
+  openingDate       DateTime                    @default(now())
+  deadline          DateTime?
+  closureDate       DateTime?
+  status            sgq_non_conformities_status @default(OPEN)
+  rootCauseAnalysis String?                     @db.LongText
+  immediateAction   String?                     @db.LongText
+  evidenceFiles     String?                     @db.LongText
+  closureNotes      String?                     @db.LongText
+  createdAt         DateTime                    @default(now())
+  updatedAt         DateTime
+  createdBy         String?                     @db.VarChar(255)
+
+  @@index([code])
+  @@index([createdAt])
+  @@index([deadline])
+  @@index([ownerId])
+  @@index([processId])
+  @@index([status])
+}
+
+model sgq_processes {
+  id          Int      @id @default(autoincrement())
+  code        String   @unique @db.VarChar(50)
+  name        String   @db.VarChar(255)
+  description String?  @db.LongText
+  status      String   @default("active") @db.VarChar(20)
+  ownerId     String   @db.VarChar(255)
+  ownerName   String   @db.VarChar(255)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime
+  createdBy   String?  @db.VarChar(255)
+
+  @@index([code])
+  @@index([ownerId])
+  @@index([status])
+}
+
+model sgq_user_profiles {
+  id          Int      @id @default(autoincrement())
+  userId      String   @unique @db.VarChar(255)
+  userName    String   @db.VarChar(255)
+  email       String   @unique @db.VarChar(150)
+  department  String?  @db.VarChar(100)
+  role        String   @default("USER") @db.VarChar(50)
+  permissions String?  @db.LongText
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime
+}
+
+model sla_config {
+  id                      Int      @id @default(autoincrement())
+  categoria               String   @unique @db.VarChar(100)
+  prioridade              String   @db.VarChar(50)
+  tempo_resposta_minutos  Int
+  tempo_resolucao_minutos Int
+  tempo_escalacao_minutos Int?
+  ativo                   Boolean  @default(true)
+  data_criacao            DateTime @default(now())
+
+  @@unique([categoria, prioridade])
+  @@index([ativo])
+}
+
+model stock_entries {
+  id                Int      @id @default(autoincrement())
+  produtoId         Int
+  quantidade        Int
+  dataEntrada       DateTime @db.DateTime(0)
+  numeroNotaFiscal  String?  @db.VarChar(50)
+  arquivoNotaFiscal String?  @db.VarChar(500)
+  observacoes       String?  @db.LongText
+  createdBy         String?  @db.VarChar(36)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @default(now())
+  empresaId         Int?
+
+  @@index([dataEntrada])
+  @@index([empresaId])
+  @@index([numeroNotaFiscal])
+  @@index([produtoId])
+}
+
+model stock_exits {
+  id          Int      @id @default(autoincrement())
+  produtoId   Int
+  quantidade  Int
+  dataSaida   DateTime @db.DateTime(0)
+  responsavel String   @db.VarChar(255)
+  observacoes String?  @db.LongText
+  motivo      String?  @db.VarChar(100)
+  createdBy   String?  @db.VarChar(36)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now())
+  empresaId   Int?
+
+  @@index([dataSaida])
+  @@index([empresaId])
+  @@index([produtoId])
+  @@index([responsavel])
+}
+
+model stock_transfers {
+  id                Int      @id @default(autoincrement())
+  produtoId         Int
+  empresaOrigemId   Int
+  empresaDestinoId  Int
+  quantidade        Int
+  dataTransferencia DateTime @db.DateTime(0)
+  responsavel       String   @db.VarChar(255)
+  observacoes       String?  @db.LongText
+  createdBy         String?  @db.VarChar(36)
+  saidaId           Int?     @unique
+  entradaId         Int?     @unique
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @default(now()) @updatedAt
+
+  @@index([produtoId])
+  @@index([empresaOrigemId])
+  @@index([empresaDestinoId])
+  @@index([dataTransferencia])
+}
+
+model subcategorias_suporte {
+  id                     Int      @id @default(autoincrement())
+  categoria_id           Int
+  nome                   String   @db.VarChar(100)
+  descricao              String?  @db.Text
+  tempo_estimado_minutos Int?
+  ativo                  Boolean  @default(true)
+  data_criacao           DateTime @default(now())
+
+  @@unique([categoria_id, nome])
+  @@index([ativo])
+  @@index([categoria_id])
+}
+
+model termos_assinados {
+  id             Int      @id @default(autoincrement())
+  colaboradorId  Int
+  nomeOriginal   String   @db.VarChar(255)
+  caminhoArquivo String   @db.VarChar(255)
+  tipoArquivo    String?  @db.VarChar(100)
+  tamanho        Int?
+  uploadedBy     String?
+  createdAt      DateTime @default(now())
+  registroId     Int?
+
+  @@index([colaboradorId])
+  @@index([registroId])
+}
+
+model ticket_arquivos {
+  id              Int      @id @default(autoincrement())
+  ticket_id       Int
+  nome_original   String   @db.VarChar(255)
+  caminho_arquivo String   @db.VarChar(255)
+  tipo_arquivo    String?  @db.VarChar(100)
+  tamanho_arquivo Int?
+  data_upload     DateTime @default(now())
+
+  @@index([data_upload])
+  @@index([ticket_id])
+}
+
+model users {
+  id               String           @id
+  nome             String           @db.VarChar(100)
+  email            String           @unique @db.VarChar(150)
+  cpf              String           @unique @db.Char(14)
+  password         String           @db.VarChar(255)
+  role             users_role       @default(USER)
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime
+  token            String?          @unique
+  foto             String?          @db.LongText
+  sobrenome        String           @db.VarChar(100)
+  oculto           Boolean          @default(false)
+  permissions_json String?          @db.LongText
+  especialidades   String?          @db.LongText
+  isTecnico        Boolean          @default(false)
+  ramal                    String?                    @db.VarChar(20)
+  setor                    String?                    @db.VarChar(100)
+  empresasCriadas          empresas[]
+  contaCorrentes           conta_corrente[]
+  caixasViagem             caixaviagem[]
+  precificadorHistorico    precificador_historico[]
+}
+
+model precificador_historico {
+  id                Int      @id @default(autoincrement())
+  userId            String
+  user              users    @relation(fields: [userId], references: [id])
+  empresaNome       String   @db.VarChar(100)
+  empresaId         Int
+  produtoCodigo     String   @db.VarChar(100)
+  produtoNome       String   @db.VarChar(255)
+  posicaoFiscal     String?  @db.VarChar(50)
+  tipoPrecoBase     String   @db.VarChar(20)
+  custoBase               Decimal  @db.Decimal(10, 2)
+  custosFixosPerc         Decimal  @db.Decimal(5, 2)
+  outrosCustosCompraPerc  Decimal  @default(0) @db.Decimal(5, 2)
+  outrosCustosVendaPerc   Decimal  @default(0) @db.Decimal(5, 2)
+  lucroPercDesejado       Decimal  @db.Decimal(5, 2)
+  ncmCodigo               String?  @db.VarChar(20)
+  ncmCategoria            String?  @db.VarChar(100)
+  vendaFora               Boolean  @default(false)
+  precoFinal              Decimal  @db.Decimal(10, 2)
+  lucroLiquido            Decimal  @db.Decimal(10, 2)
+  margemLiquida           Decimal  @db.Decimal(5, 2)
+  createdAt               DateTime @default(now())
+
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model viagemlancamento {
+  id                Int          @id @default(autoincrement())
+  caixaViagemId     Int?
+  data              DateTime
+  custo             String
+  clienteFornecedor String
+  entrada           String?
+  saida             String?
+  numeroDocumento   String?
+  historicoDoc      String?
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime
+  caixaViagem       caixaviagem? @relation(fields: [caixaViagemId], references: [id])
+
+  @@index([caixaViagemId], map: "ViagemLancamento_caixaViagemId_idx")
+}
+
+enum sgq_activity_logs_action {
+  CREATE
+  UPDATE
+  DELETE
+  APPROVE
+  REJECT
+  CLOSE
+  VIEW
+}
+
+enum audit_logs_operacao {
+  CREATE
+  UPDATE
+  DELETE
+}
+
+enum historico_tickets_tipoEvento {
+  CRIACAO
+  ATRIBUICAO
+  MUDANCA_STATUS
+  MUDANCA_PRIORIDADE
+  COMENTARIO_PUBLICO
+  NOTA_INTERNA
+  ANEXO_ADICIONADO
+  RESOLUCAO
+  FECHAMENTO
+  REABERTURA
+}
+
+enum sgq_activity_logs_entityType {
+  DOCUMENT
+  PROCESS
+  NON_CONFORMITY
+  CORRECTIVE_ACTION
+  USER_PROFILE
+}
+
+enum sgq_help_articles_category {
+  TUTORIAL
+  CHECKLIST
+  FAQ
+  BEST_PRACTICE
+}
+
+enum notificacoes_tipo {
+  ASSIGNMENT
+  STATUS_CHANGE
+  NEW_COMMENT
+  PRIORITY_ESCALATION
+  RESOLUTION
+}
+
+enum sgq_documents_type {
+  PROCEDURE
+  POLICY
+  WORK_INSTRUCTION
+  FORM
+  RECORD
+  OTHER
+}
+
+enum sgq_non_conformities_origin {
+  INTERNAL
+  EXTERNAL
+  AUDIT
+  CUSTOMER_COMPLAINT
+  INTERNAL_AUDIT
+}
+
+enum comentarios_tipo {
+  COMENTARIO
+  STATUS_CHANGE
+  ATRIBUICAO
+  RESOLUCAO
+}
+
+enum notas_internas_tipoAcao {
+  DIAGNOSTICO
+  SOLUCAO_TENTADA
+  OBSERVACAO
+  ESCALACAO
+}
+
+enum users_role {
+  USER
+  ADMIN
+}
+
+enum sgq_document_versions_status {
+  PENDING_APPROVAL
+  APPROVED
+  REJECTED
+  ARCHIVED
+}
+
+enum products_status {
+  ATIVO
+  INATIVO
+}
+
+enum sgq_corrective_actions_status {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  VERIFIED
+  CLOSED
+}
+
+enum sgq_documents_status {
+  DRAFT
+  PENDING_APPROVAL
+  APPROVED
+  ARCHIVED
+  OBSOLETE
+}
+
+enum sgq_non_conformities_status {
+  OPEN
+  ANALYSIS
+  ACTION
+  VERIFICATION
+  CLOSED
+}
+
+// ─── EPI ────────────────────────────────────────────────────────────────────
+
+enum epi_status {
+  ATIVO
+  INATIVO
+}
+
+model epi_estoque_filial {
+  id             Int      @id @default(autoincrement())
+  epi_id         Int
+  empresaId      Int
+  estoque_atual  Int      @default(0)
+  estoque_minimo Int      @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @default(now())
+  epi            epis     @relation(fields: [epi_id], references: [id])
+  empresa        empresas @relation("EmpresaEpiEstoqueFilial", fields: [empresaId], references: [id])
+
+  @@unique([epi_id, empresaId])
+  @@index([epi_id])
+  @@index([empresaId])
+}
+
+enum epi_movimentacao_tipo {
+  ENTREGA
+  DEVOLUCAO
+  TROCA
+  PERDA
+  BAIXA
+}
+
+enum epi_estoque_tipo {
+  ENTRADA
+  SAIDA
+  AJUSTE
+  PERDA
+  DEVOLUCAO
+}
+
+model epi_cargos {
+  id                 Int                     @id @default(autoincrement())
+  nome               String                  @db.VarChar(100)
+  descricao          String?                 @db.VarChar(255)
+  createdAt          DateTime                @default(now())
+  updatedAt          DateTime                @default(now())
+  colaboradores      colaboradores[]         @relation("ColaboradorEpiCargo")
+  epis_obrigatorios  epi_cargo_obrigatorio[]
+
+  @@index([nome])
+}
+
+model epis {
+  id                    Int                         @id @default(autoincrement())
+  nome                  String                      @db.VarChar(255)
+  codigo                String                      @unique @db.VarChar(50)
+  ca                    String                      @db.VarChar(50)
+  categoria             String                      @db.VarChar(100)
+  tamanho               String?                     @db.VarChar(50)
+  fabricante            String                      @db.VarChar(255)
+  vida_util_dias        Int
+  estoque_inicial       Int                         @default(0)
+  estoque_atual         Int                         @default(0)
+  estoque_minimo        Int                         @default(0)
+  status                epi_status                  @default(ATIVO)
+  observacoes           String?                     @db.Text
+  createdAt             DateTime                    @default(now())
+  updatedAt             DateTime                    @default(now())
+  cargos_obrigatorios   epi_cargo_obrigatorio[]
+  movimentacoes         epi_movimentacoes[]
+  estoque_movimentacoes epi_estoque_movimentacoes[]
+  estoque_filial        epi_estoque_filial[]
+
+  @@index([categoria])
+  @@index([status])
+  @@index([codigo])
+}
+
+model epi_cargo_obrigatorio {
+  id                       Int        @id @default(autoincrement())
+  cargo_id                 Int
+  epi_id                   Int
+  periodicidade_troca_dias Int
+  quantidade_padrao        Int        @default(1)
+  obrigatorio              Boolean    @default(true)
+  cargo                    epi_cargos @relation(fields: [cargo_id], references: [id])
+  epi                      epis       @relation(fields: [epi_id], references: [id])
+
+  @@unique([cargo_id, epi_id])
+  @@index([cargo_id])
+  @@index([epi_id])
+}
+
+model epi_movimentacoes {
+  id                Int                   @id @default(autoincrement())
+  colaborador_id    Int
+  epi_id            Int
+  tipo              epi_movimentacao_tipo
+  quantidade        Int
+  data_movimentacao DateTime
+  responsavel       String                @db.VarChar(255)
+  proxima_entrega   DateTime?
+  motivo            String?               @db.VarChar(255)
+  observacoes       String?               @db.Text
+  empresaId         Int?
+  createdAt         DateTime              @default(now())
+  colaborador       colaboradores         @relation(fields: [colaborador_id], references: [id])
+  epi               epis                  @relation(fields: [epi_id], references: [id])
+  empresa           empresas?             @relation("EmpresaEpiMovimentacoes", fields: [empresaId], references: [id])
+
+  @@index([colaborador_id])
+  @@index([epi_id])
+  @@index([empresaId])
+  @@index([data_movimentacao])
+  @@index([proxima_entrega])
+}
+
+model epi_estoque_movimentacoes {
+  id                Int              @id @default(autoincrement())
+  epi_id            Int
+  tipo              epi_estoque_tipo
+  quantidade        Int
+  data_movimentacao DateTime
+  responsavel       String           @db.VarChar(255)
+  observacoes       String?          @db.Text
+  empresaId         Int?
+  createdAt         DateTime         @default(now())
+  epi               epis             @relation(fields: [epi_id], references: [id])
+  empresa           empresas?        @relation("EmpresaEpiEstoqueMovs", fields: [empresaId], references: [id])
+
+  @@index([epi_id])
+  @@index([empresaId])
+  @@index([data_movimentacao])
+}
+
+model epi_transferencias {
+  id                Int      @id @default(autoincrement())
+  epiId             Int
+  empresaOrigemId   Int
+  empresaDestinoId  Int
+  quantidade        Int
+  dataTransferencia DateTime @db.DateTime(0)
+  responsavel       String   @db.VarChar(255)
+  observacoes       String?  @db.LongText
+  createdBy         String?  @db.VarChar(36)
+  saidaId           Int?     @unique
+  entradaId         Int?     @unique
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @default(now()) @updatedAt
+
+  @@index([epiId])
+  @@index([empresaOrigemId])
+  @@index([empresaDestinoId])
+  @@index([dataTransferencia])
+}
