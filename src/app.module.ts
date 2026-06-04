@@ -6,6 +6,9 @@ import { AuthModule } from './auth/auth.module';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { OracleBridgeModule } from './common/oracle-bridge/oracle-bridge.module';
 import { ColaboradoresModule } from './modules/colaboradores/colaboradores.module';
+import { EmpresasModule } from './modules/empresas/empresas.module';
+import { PermissoesModule } from './modules/permissoes/permissoes.module';
+import { UsuariosModule } from './modules/usuarios/usuarios.module';
 import { PrismaModule } from './prisma/prisma.module';
 
 @Module({
@@ -16,6 +19,9 @@ import { PrismaModule } from './prisma/prisma.module';
     OracleBridgeModule,
     AuthModule,
     ColaboradoresModule,
+    UsuariosModule,
+    EmpresasModule,
+    PermissoesModule,
     // Próximos módulos a migrar:
     // EmpresasModule,
     // BancoHorasModule,

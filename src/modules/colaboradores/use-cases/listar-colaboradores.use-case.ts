@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import type { ColaboradoresRepository } from '../repositories/colaboradores.repository';
+import  { ColaboradoresRepository } from '../repositories/colaboradores.repository';
 
 @Injectable()
 export class ListarColaboradoresUseCase {

@@ -4,7 +4,13 @@
       "Bash(npm uninstall *)",
       "Bash(npm install *)",
       "Bash(npx biome *)",
-      "Bash(Remove-Item eslint.config.mjs, .prettierrc)"
+      "Bash(Remove-Item eslint.config.mjs, .prettierrc)",
+      "Bash(npx tsc *)",
+      "PowerShell(Get-ChildItem -Path \"C:\\\\Users\\\\angelo.belelli\\\\Documents\\\\GitHub\\\\BarberShop\\\\server\" -Recurse -Exclude node_modules | Where-Object { $_.PSIsContainer -or $_.Extension -in @\\('.ts', '.js', '.json', '.env', '.env.example', '.yml', '.yaml'\\) } | Sort-Object FullName | Select-Object FullName)",
+      "Bash(dir *)",
+      "Read(//c/Users/angelo.belelli/Documents/GitHub/comercialscarduaapp/**)",
+      "Bash(Get-ChildItem -Path . -Force)",
+      "Bash(Select-Object Name, FullName)"
     ]
   }
 }

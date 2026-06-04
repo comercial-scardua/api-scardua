@@ -1,15 +1,15 @@
 import { Injectable } from '@nestjs/common';
-import type { colaboradores } from '@prisma/client';
-import type { PrismaService } from '../../../prisma/prisma.service';
-import type { CriarColaboradorDto } from '../dto/criar-colaborador.dto';
-import type { ColaboradoresRepository } from './colaboradores.repository';
+import  { colaboradores } from '@prisma/client';
+import  { PrismaService } from '../../../prisma/prisma.service';
+import  { CriarColaboradorDto } from '../dto/criar-colaborador.dto';
+import  { ColaboradoresRepository } from './colaboradores.repository';
 
 @Injectable()
 export class PrismaColaboradoresRepository implements ColaboradoresRepository {
   constructor(private prisma: PrismaService) {}
 
   findAll({ cpf, simple }: { cpf?: string; simple?: boolean }) {
-    const normalizedCpf = cpf?.replace(/[.-]/g, '');
+    const normalizedCpf = cpf?.replace(/\D/g, '');
     const where = normalizedCpf ? { cpf: normalizedCpf } : { oculto: false };
 
     if (simple) {
@@ -21,41 +21,104 @@ export class PrismaColaboradoresRepository implements ColaboradoresRepository {
           sobrenome: true,
           cpf: true,
           identidade: true,
+          empresa: { select: { id: true, nomeEmpresa: true } },
         },
+        orderBy: { nome: 'asc' },
       });
     }
 
     return this.prisma.colaboradores.findMany({
       where,
-      include: { empresa: true, horarioTrabalho: true },
+      include: { empresa: true, horarioTrabalho: true, patrimonios: true },
+      orderBy: { nome: 'asc' },
     });
   }
 
   findById(id: number) {
     return this.prisma.colaboradores.findUnique({
       where: { id },
-      include: { empresa: true, horarioTrabalho: true },
+      include: { empresa: true, horarioTrabalho: true, patrimonios: true },
     });
   }
 
-  findByEmail(email: string) {
-    return this.prisma.colaboradores.findFirst({ where: { email } });
+  findByCpf(cpf: string) {
+    const normalized = cpf.replace(/\D/g, '');
+    return this.prisma.colaboradores.findUnique({ where: { cpf: normalized } });
+  }
+
+  findByUserId(userId: string) {
+    return this.prisma.colaboradores.findFirst({
+      where: { userId },
+      include: { empresa: true, horarioTrabalho: true, patrimonios: true },
+    });
   }
 
   async create(data: CriarColaboradorDto): Promise<colaboradores> {
-    const { horaInicio, horaFim, admissao, ...rest } = data;
+    const {
+      horaInicio,
+      horaFim,
+      intervaloAlmoco,
+      trabalhaSegunda,
+      trabalhaTerca,
+      trabalhaQuarta,
+      trabalhaQuinta,
+      trabalhaSexa,
+      trabalhaSabado,
+      trabalhaDomingo,
+      cpf: rawCpf,
+      admissao,
+      demissao,
+      cnhVencimento,
+      dataNascimento,
+      ...rest
+    } = data;
+
+    const normalizedCpf = rawCpf?.replace(/\D/g, '');
+    const hasHorario = !!(horaInicio || horaFim);
 
     const colaborador = await this.prisma.colaboradores.create({
       data: {
         ...rest,
+        cpf: normalizedCpf,
         admissao: admissao ? new Date(admissao) : undefined,
+        demissao: demissao ? new Date(demissao) : undefined,
+        cnhVencimento: cnhVencimento ? new Date(cnhVencimento) : undefined,
+        dataNascimento: dataNascimento ? new Date(dataNascimento) : undefined,
         updatedAt: new Date(),
-        horarioTrabalho:
-          horaInicio && horaFim
-            ? { create: { horaInicio, horaFim, updatedAt: new Date() } }
-            : undefined,
+        horarioTrabalho: hasHorario
+          ? {
+              create: {
+                horaInicio: horaInicio ?? '07:30',
+                horaFim: horaFim ?? '17:30',
+                intervaloAlmo_o: intervaloAlmoco ?? 66,
+                trabalhaSegunda: trabalhaSegunda ?? true,
+                trabalhaTerca: trabalhaTerca ?? true,
+                trabalhaQuarta: trabalhaQuarta ?? true,
+                trabalhaQuinta: trabalhaQuinta ?? true,
+                trabalhaSexa: trabalhaSexa ?? true,
+                trabalhaSabado: trabalhaSabado ?? false,
+                trabalhaDomingo: trabalhaDomingo ?? false,
+                updatedAt: new Date(),
+              },
+            }
+          : undefined,
       },
     });
+
+    // Vínculo automático: se existir user com mesmo CPF, liga os dois
+    if (normalizedCpf && !colaborador.userId) {
+      const formatted = `${normalizedCpf.slice(0, 3)}.${normalizedCpf.slice(3, 6)}.${normalizedCpf.slice(6, 9)}-${normalizedCpf.slice(9)}`;
+      const user = await this.prisma.users.findUnique({
+        where: { cpf: formatted },
+        select: { id: true },
+      });
+      if (user) {
+        return this.prisma.colaboradores.update({
+          where: { id: colaborador.id },
+          data: { userId: user.id, updatedAt: new Date() },
+        });
+      }
+    }
 
     return colaborador;
   }
@@ -64,12 +127,105 @@ export class PrismaColaboradoresRepository implements ColaboradoresRepository {
     id: number,
     data: Partial<CriarColaboradorDto>,
   ): Promise<colaboradores> {
-    const { horaInicio, horaFim, ...rest } = data;
+    const {
+      horaInicio,
+      horaFim,
+      intervaloAlmoco,
+      trabalhaSegunda,
+      trabalhaTerca,
+      trabalhaQuarta,
+      trabalhaQuinta,
+      trabalhaSexa,
+      trabalhaSabado,
+      trabalhaDomingo,
+      cpf: rawCpf,
+      admissao,
+      demissao,
+      cnhVencimento,
+      dataNascimento,
+      ...rest
+    } = data;
 
-    return this.prisma.colaboradores.update({
+    const normalizedCpf = rawCpf?.replace(/\D/g, '');
+    const oculto =
+      demissao !== undefined ? new Date(demissao) < new Date() : undefined;
+
+    const colaborador = await this.prisma.colaboradores.update({
       where: { id },
-      data: { ...rest, updatedAt: new Date() },
+      data: {
+        ...rest,
+        ...(normalizedCpf !== undefined && { cpf: normalizedCpf }),
+        ...(admissao !== undefined && { admissao: new Date(admissao) }),
+        ...(demissao !== undefined && { demissao: new Date(demissao) }),
+        ...(cnhVencimento !== undefined && {
+          cnhVencimento: new Date(cnhVencimento),
+        }),
+        ...(dataNascimento !== undefined && {
+          dataNascimento: new Date(dataNascimento),
+        }),
+        ...(oculto !== undefined && { oculto }),
+        updatedAt: new Date(),
+      },
     });
+
+    // Sincroniza status oculto nos users com mesmo CPF
+    if (normalizedCpf && oculto !== undefined) {
+      const formatted = `${normalizedCpf.slice(0, 3)}.${normalizedCpf.slice(3, 6)}.${normalizedCpf.slice(6, 9)}-${normalizedCpf.slice(9)}`;
+      await this.prisma.users.updateMany({
+        where: { cpf: formatted },
+        data: { oculto, updatedAt: new Date() },
+      });
+    }
+
+    // Upsert horário de trabalho
+    const horarioFields = [
+      horaInicio,
+      horaFim,
+      intervaloAlmoco,
+      trabalhaSegunda,
+      trabalhaTerca,
+      trabalhaQuarta,
+      trabalhaQuinta,
+      trabalhaSexa,
+      trabalhaSabado,
+      trabalhaDomingo,
+    ];
+    if (horarioFields.some((v) => v !== undefined)) {
+      await this.prisma.horarios_trabalho.upsert({
+        where: { colaboradorId: id },
+        update: {
+          ...(horaInicio !== undefined && { horaInicio }),
+          ...(horaFim !== undefined && { horaFim }),
+          ...(intervaloAlmoco !== undefined && {
+            intervaloAlmo_o: intervaloAlmoco,
+          }),
+          ...(trabalhaSegunda !== undefined && { trabalhaSegunda }),
+          ...(trabalhaTerca !== undefined && { trabalhaTerca }),
+          ...(trabalhaQuarta !== undefined && { trabalhaQuarta }),
+          ...(trabalhaQuinta !== undefined && { trabalhaQuinta }),
+          ...(trabalhaSexa !== undefined && { trabalhaSexa }),
+          ...(trabalhaSabado !== undefined && { trabalhaSabado }),
+          ...(trabalhaDomingo !== undefined && { trabalhaDomingo }),
+          updatedAt: new Date(),
+        },
+        create: {
+          colaboradorId: id,
+          horaInicio: horaInicio ?? '07:30',
+          horaFim: horaFim ?? '17:30',
+          intervaloAlmo_o: intervaloAlmoco ?? 66,
+          trabalhaSegunda: trabalhaSegunda ?? true,
+          trabalhaTerca: trabalhaTerca ?? true,
+          trabalhaQuarta: trabalhaQuarta ?? true,
+          trabalhaQuinta: trabalhaQuinta ?? true,
+          trabalhaSexa: trabalhaSexa ?? true,
+          trabalhaSabado: trabalhaSabado ?? false,
+          trabalhaDomingo: trabalhaDomingo ?? false,
+          updatedAt: new Date(),
+        },
+      });
+    }
+
+    return colaborador;
   }
 
   softDelete(id: number): Promise<colaboradores> {
