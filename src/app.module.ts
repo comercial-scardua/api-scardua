@@ -5,8 +5,15 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { AuthModule } from './auth/auth.module';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { OracleBridgeModule } from './common/oracle-bridge/oracle-bridge.module';
+import { SupabaseModule } from './common/supabase/supabase.module';
 import { ColaboradoresModule } from './modules/colaboradores/colaboradores.module';
+import { ContratosModule } from './modules/contratos/contratos.module';
 import { EmpresasModule } from './modules/empresas/empresas.module';
+import { ContaCorrenteModule } from './modules/conta-corrente/conta-corrente.module';
+import { EstoqueModule } from './modules/estoque/estoque.module';
+import { ManuaisModule } from './modules/manuais/manuais.module';
+import { NcmModule } from './modules/ncm/ncm.module';
+import { PatrimoniosModule } from './modules/patrimonios/patrimonios.module';
 import { PermissoesModule } from './modules/permissoes/permissoes.module';
 import { UsuariosModule } from './modules/usuarios/usuarios.module';
 import { PrismaModule } from './prisma/prisma.module';
@@ -16,20 +23,24 @@ import { PrismaModule } from './prisma/prisma.module';
     ConfigModule.forRoot({ isGlobal: true }),
     ThrottlerModule.forRoot([{ ttl: 60_000, limit: 120 }]),
     PrismaModule,
+    SupabaseModule,
     OracleBridgeModule,
     AuthModule,
     ColaboradoresModule,
     UsuariosModule,
     EmpresasModule,
     PermissoesModule,
+    NcmModule,
+    ContratosModule,
+    ManuaisModule,
+    PatrimoniosModule,
+    ContaCorrenteModule,
+    EstoqueModule,
     // Próximos módulos a migrar:
-    // EmpresasModule,
     // BancoHorasModule,
     // CaixaViagemModule,
     // PrecificadorModule,
-    // NcmModule,
     // EpiModule,
-    // ContratosModule,
     // EstoqueModule,
     // PatrimonioModule,
     // SuporteModule,
