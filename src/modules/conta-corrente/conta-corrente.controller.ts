@@ -59,6 +59,14 @@ export class ContaCorrenteController {
     return this.repo.findAll(showHidden);
   }
 
+  @Get('usuario/:userId')
+  @HttpCode(200)
+  @RequirePermission('contacorrente', 'access')
+  @ApiOperation({ summary: 'Contas correntes de um usuário específico' })
+  findByUsuario(@Param('userId') userId: string) {
+    return this.repo.findByUserId(userId);
+  }
+
   @Get('resumo/:userId')
   @HttpCode(200)
   @ApiOperation({ summary: 'Resumo financeiro de um usuário' })

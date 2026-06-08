@@ -66,6 +66,16 @@ export class ManuaisController {
     return result.value.manual;
   }
 
+  @Get(':id/descricao')
+  @HttpCode(200)
+  @RequirePermission('manuais', 'access')
+  @ApiOperation({ summary: 'Retorna apenas a descrição do manual (campo LONGTEXT isolado)' })
+  async findDescricao(@Param('id', ParseIntPipe) id: number) {
+    const result = await this.buscar.execute(id);
+    if (result.isLeft()) throw new NotFoundException(result.value.message);
+    return { id, descricao: result.value.manual.descricao };
+  }
+
   @Post()
   @HttpCode(201)
   @RequirePermission('manuais', 'edit')

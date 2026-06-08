@@ -28,6 +28,7 @@ import { CurrentUser } from '../../auth/decorators/current-user.decorator';
 import { RequirePermission } from '../../auth/decorators/require-permission.decorator';
 import { PermissionsGuard } from '../../auth/guards/permissions.guard';
 import type { JwtPayload } from '../../auth/types/jwt-payload.type';
+import type { PrismaService } from '../../prisma/prisma.service';
 import type { CriarColaboradorDto } from './dto/criar-colaborador.dto';
 import { ColaboradoresRepository } from './repositories/colaboradores.repository';
 import { AtualizarColaboradorUseCase } from './use-cases/atualizar-colaborador.use-case';
@@ -51,6 +52,7 @@ export class ColaboradoresController {
     private desativar: DesativarColaboradorUseCase,
     private atualizarFoto: AtualizarFotoColaboradorUseCase,
     private repo: ColaboradoresRepository,
+    private prisma: PrismaService,
   ) {}
 
   @Get()
@@ -153,5 +155,19 @@ export class ColaboradoresController {
     if (result.isLeft()) {
       throw new NotFoundException(result.value.message);
     }
+  }
+
+  @Get(':id/termos')
+  @HttpCode(200)
+  @RequirePermission('colaboradores', 'access')
+  @ApiOperation({ summary: 'Listar termos assinados pelo colaborador' })
+  async findTermos(@Param('id', ParseIntPipe) id: number) {
+    const colaborador = await this.repo.findById(id);
+    if (!colaborador) throw new NotFoundException(`Colaborador #${id} não encontrado`);
+
+    return this.prisma.termos_assinados.findMany({
+      where: { colaboradorId: id },
+      orderBy: { createdAt: 'desc' },
+    });
   }
 }

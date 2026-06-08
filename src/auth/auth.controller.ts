@@ -1,4 +1,4 @@
-import { BadRequestException, Body, Controller, Get, HttpCode, Post, Query } from '@nestjs/common';
+import { BadRequestException, Body, ConflictException, Controller, Get, HttpCode, Post, Query } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { CurrentUser } from './decorators/current-user.decorator';
@@ -16,6 +16,21 @@ export class AuthController {
   @ApiOperation({ summary: 'Login com email e senha' })
   login(@Body() dto: LoginDto) {
     return this.auth.login(dto);
+  }
+
+  @Public()
+  @Post('register')
+  @HttpCode(201)
+  @ApiOperation({ summary: 'Registrar novo usuário' })
+  async register(
+    @Body() dto: { nome: string; sobrenome: string; email: string; cpf: string; password: string },
+  ) {
+    try {
+      return await this.auth.register(dto);
+    } catch (e: any) {
+      if (e instanceof ConflictException) throw e;
+      throw e;
+    }
   }
 
   @Public()

@@ -9,6 +9,7 @@ import {
   NotFoundException,
   Param,
   ParseIntPipe,
+  Patch,
   Post,
   Put,
   Query,
@@ -215,6 +216,16 @@ export class EstoqueController {
     return result.value.entrada;
   }
 
+  @Delete('entradas/:id')
+  @HttpCode(204)
+  @RequirePermission('estoque', 'edit')
+  @ApiOperation({ summary: 'Excluir entrada (reverte estoqueAtual)' })
+  async deleteEntrada(@Param('id', ParseIntPipe) id: number) {
+    const existe = await this.repo.findEntradaById(id);
+    if (!existe) throw new NotFoundException(`Entrada #${id} não encontrada`);
+    await this.repo.excluirEntrada(id);
+  }
+
   // ── Saídas ────────────────────────────────────────────────────────────────
 
   @Get('saidas')
@@ -267,6 +278,16 @@ export class EstoqueController {
     }
 
     return result.value.saida;
+  }
+
+  @Delete('saidas/:id')
+  @HttpCode(204)
+  @RequirePermission('estoque', 'edit')
+  @ApiOperation({ summary: 'Excluir saída (reverte estoqueAtual)' })
+  async deleteSaida(@Param('id', ParseIntPipe) id: number) {
+    const existe = await this.repo.findSaidaById(id);
+    if (!existe) throw new NotFoundException(`Saída #${id} não encontrada`);
+    await this.repo.excluirSaida(id);
   }
 
   // ── Transferências ────────────────────────────────────────────────────────

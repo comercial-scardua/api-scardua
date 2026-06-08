@@ -1,9 +1,15 @@
-import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
+import { randomUUID } from 'crypto';
 import { PrismaService } from '../prisma/prisma.service';
 import type { LoginDto } from './dto/login.dto';
 import type { JwtPayload } from './types/jwt-payload.type';
+
+function formatCpf(cpf: string): string {
+  const n = cpf.replace(/\D/g, '');
+  return `${n.slice(0, 3)}.${n.slice(3, 6)}.${n.slice(6, 9)}-${n.slice(9)}`;
+}
 
 @Injectable()
 export class AuthService {
@@ -75,6 +81,41 @@ export class AuthService {
       select: { id: true },
     });
     return { exists: !!user, userId: user?.id ?? null };
+  }
+
+  async register(dto: {
+    nome: string;
+    sobrenome: string;
+    email: string;
+    cpf: string;
+    password: string;
+  }) {
+    const [emailExiste, cpfExiste] = await Promise.all([
+      this.prisma.users.findUnique({ where: { email: dto.email }, select: { id: true } }),
+      this.prisma.users.findUnique({ where: { cpf: formatCpf(dto.cpf) }, select: { id: true } }),
+    ]);
+
+    if (emailExiste) throw new ConflictException('E-mail já cadastrado');
+    if (cpfExiste) throw new ConflictException('CPF já cadastrado');
+
+    const passwordHash = await bcrypt.hash(dto.password, 10);
+    const user = await this.prisma.users.create({
+      data: {
+        id: randomUUID(),
+        nome: dto.nome,
+        sobrenome: dto.sobrenome,
+        email: dto.email,
+        cpf: formatCpf(dto.cpf),
+        password: passwordHash,
+        role: 'USER',
+        updatedAt: new Date(),
+      },
+    });
+
+    return {
+      token: this.signToken(user),
+      user: { id: user.id, nome: user.nome, sobrenome: user.sobrenome, email: user.email, role: user.role },
+    };
   }
 
   async refreshPermissions(userId: string) {

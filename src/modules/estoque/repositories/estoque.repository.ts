@@ -24,11 +24,13 @@ export abstract class EstoqueRepository {
   abstract findEntradas(filters: { produtoId?: number; numeroNotaFiscal?: string; dataInicio?: string; dataFim?: string } & FiltrosPagina): Promise<{ data: stock_entries[]; total: number; pages: number }>;
   abstract findEntradaById(id: number): Promise<stock_entries | null>;
   abstract criarEntrada(data: CriarEntradaDto, userId: string, arquivoUrl?: string): Promise<stock_entries>;
+  abstract excluirEntrada(id: number): Promise<void>;
 
   // Saídas
   abstract findSaidas(filters: { produtoId?: number; responsavel?: string; motivo?: string; dataInicio?: string; dataFim?: string } & FiltrosPagina): Promise<{ data: stock_exits[]; total: number; pages: number }>;
   abstract findSaidaById(id: number): Promise<stock_exits | null>;
   abstract criarSaida(data: CriarSaidaDto, userId: string): Promise<stock_exits>;
+  abstract excluirSaida(id: number): Promise<void>;
 
   // Transferências
   abstract findTransferencias(filters: { produtoId?: number; empresaOrigemId?: number; empresaDestinoId?: number; dataInicio?: string; dataFim?: string } & FiltrosPagina): Promise<{ data: stock_transfers[]; total: number; pages: number }>;

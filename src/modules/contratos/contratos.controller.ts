@@ -25,6 +25,8 @@ import {
 } from '@nestjs/swagger';
 import { RequirePermission } from '../../auth/decorators/require-permission.decorator';
 import { PermissionsGuard } from '../../auth/guards/permissions.guard';
+import type { SupabaseService } from '../../common/supabase/supabase.service';
+import { randomUUID } from 'crypto';
 import type { AtualizarContratoDto } from './dto/atualizar-contrato.dto';
 import type { CriarContratoDto } from './dto/criar-contrato.dto';
 import { ContratosRepository } from './repositories/contratos.repository';
@@ -51,6 +53,7 @@ export class ContratosController {
     private acaoUseCase: AcaoContratoUseCase,
     private excluir: ExcluirContratoUseCase,
     private gerenciarArquivo: GerenciarArquivoContratoUseCase,
+    private supabase: SupabaseService,
   ) {}
 
   @Get()
@@ -167,5 +170,14 @@ export class ContratosController {
   ) {
     const result = await this.gerenciarArquivo.remover(id, arquivoId);
     if (result.isLeft()) throw new NotFoundException(result.value.message);
+  }
+
+  @Post('upload-url')
+  @HttpCode(200)
+  @RequirePermission('contratos', 'edit')
+  @ApiOperation({ summary: 'Gerar URL assinada para upload direto ao Supabase' })
+  async uploadUrl(@Body('path') path?: string) {
+    const filePath = path ?? `contratos/${Date.now()}_${randomUUID().slice(0, 8)}`;
+    return this.supabase.getSignedUploadUrl('uploads', filePath);
   }
 }

@@ -97,6 +97,18 @@ export class PrismaEstoqueRepository implements EstoqueRepository {
     return entrada;
   }
 
+  async excluirEntrada(id: number): Promise<void> {
+    const entrada = await this.findEntradaById(id);
+    if (!entrada) return;
+    await this.prisma.$transaction([
+      this.prisma.stock_entries.delete({ where: { id } }),
+      this.prisma.products.update({
+        where: { id: entrada.produtoId },
+        data: { estoqueAtual: { decrement: entrada.quantidade } },
+      }),
+    ]);
+  }
+
   // ── Saídas ────────────────────────────────────────────────────────────────
 
   async findSaidas({ produtoId, responsavel, motivo, dataInicio, dataFim, page = 1, limit = 10 }: { produtoId?: number; responsavel?: string; motivo?: string; dataInicio?: string; dataFim?: string } & FiltrosPagina) {
@@ -144,6 +156,18 @@ export class PrismaEstoqueRepository implements EstoqueRepository {
       }),
     ]);
     return saida;
+  }
+
+  async excluirSaida(id: number): Promise<void> {
+    const saida = await this.findSaidaById(id);
+    if (!saida) return;
+    await this.prisma.$transaction([
+      this.prisma.stock_exits.delete({ where: { id } }),
+      this.prisma.products.update({
+        where: { id: saida.produtoId },
+        data: { estoqueAtual: { increment: saida.quantidade } },
+      }),
+    ]);
   }
 
   // ── Transferências ────────────────────────────────────────────────────────

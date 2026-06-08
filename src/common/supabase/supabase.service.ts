@@ -34,6 +34,18 @@ export class SupabaseService {
     if (error) throw new Error(`Supabase remove error: ${error.message}`);
   }
 
+  async getSignedUploadUrl(
+    bucket: string,
+    path: string,
+  ): Promise<{ signedUrl: string; token: string; path: string }> {
+    const { data, error } = await this.client.storage
+      .from(bucket)
+      .createSignedUploadUrl(path);
+
+    if (error) throw new Error(`Supabase signed URL error: ${error.message}`);
+    return { signedUrl: data.signedUrl, token: data.token, path: data.path };
+  }
+
   extractPathFromUrl(url: string, bucket: string): string | null {
     try {
       const marker = `/storage/v1/object/public/${bucket}/`;
