@@ -27,12 +27,12 @@ import { PermissionsGuard } from '../../auth/guards/permissions.guard';
 import type { JwtPayload } from '../../auth/types/jwt-payload.type';
 import type { AtualizarManualDto } from './dto/atualizar-manual.dto';
 import type { CriarManualDto } from './dto/criar-manual.dto';
-import type { ManuaisRepository } from './repositories/manuais.repository';
-import type { AtualizarManualUseCase } from './use-cases/atualizar-manual.use-case';
-import type { BuscarManualUseCase } from './use-cases/buscar-manual.use-case';
-import type { CriarManualUseCase } from './use-cases/criar-manual.use-case';
-import type { DesativarManualUseCase } from './use-cases/desativar-manual.use-case';
-import type { GerenciarArquivoManualUseCase } from './use-cases/gerenciar-arquivo-manual.use-case';
+import { ManuaisRepository } from './repositories/manuais.repository';
+import { AtualizarManualUseCase } from './use-cases/atualizar-manual.use-case';
+import { BuscarManualUseCase } from './use-cases/buscar-manual.use-case';
+import { CriarManualUseCase } from './use-cases/criar-manual.use-case';
+import { DesativarManualUseCase } from './use-cases/desativar-manual.use-case';
+import { GerenciarArquivoManualUseCase } from './use-cases/gerenciar-arquivo-manual.use-case';
 
 @ApiTags('Manuais')
 @ApiBearerAuth()

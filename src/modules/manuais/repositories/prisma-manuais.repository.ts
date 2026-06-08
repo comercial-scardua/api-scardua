@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import type { manual, manual_arquivos } from '@prisma/client';
-import type { PrismaService } from '../../../prisma/prisma.service';
+import { PrismaService } from '../../../prisma/prisma.service';
 import type { AtualizarManualDto } from '../dto/atualizar-manual.dto';
 import type { CriarManualDto } from '../dto/criar-manual.dto';
 import type { ManualCompleto, ManuaisRepository } from './manuais.repository';

@@ -2,8 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { randomUUID } from 'crypto';
 import { extname } from 'path';
 import { type Either, left, right } from '../../../core/either';
-import type { SupabaseService } from '../../../common/supabase/supabase.service';
-import type { ManuaisRepository } from '../repositories/manuais.repository';
+import { SupabaseService } from '../../../common/supabase/supabase.service';
+import { ManuaisRepository } from '../repositories/manuais.repository';
 import { ManualNaoEncontradoError } from './errors/manual-nao-encontrado.error';
 
 type AdicionarArquivoResult = Either<ManualNaoEncontradoError, { url: string }>;

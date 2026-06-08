@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import type { ncm } from '@prisma/client';
 import { type Either, left, right } from '../../../core/either';
 import type { CriarNcmDto } from '../dto/criar-ncm.dto';
-import type { NcmRepository } from '../repositories/ncm.repository';
+import { NcmRepository } from '../repositories/ncm.repository';
 import { NcmDuplicadoError } from './errors/ncm-duplicado.error';
 
 type CriarNcmResult = Either<NcmDuplicadoError, { ncm: ncm }>;

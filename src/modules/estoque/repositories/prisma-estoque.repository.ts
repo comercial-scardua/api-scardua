@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import type { PrismaService } from '../../../prisma/prisma.service';
+import { PrismaService } from '../../../prisma/prisma.service';
 import type { CriarEntradaDto } from '../dto/criar-entrada.dto';
 import type { CriarProdutoDto } from '../dto/criar-produto.dto';
 import type { CriarSaidaDto } from '../dto/criar-saida.dto';
@@ -71,6 +71,10 @@ export class PrismaEstoqueRepository implements EstoqueRepository {
     return { data, total, pages: Math.ceil(total / limit) };
   }
 
+  findEntradaById(id: number) {
+    return this.prisma.stock_entries.findUnique({ where: { id } });
+  }
+
   async criarEntrada(data: CriarEntradaDto, userId: string, arquivoUrl?: string) {
     const [entrada] = await this.prisma.$transaction([
       this.prisma.stock_entries.create({
@@ -116,6 +120,10 @@ export class PrismaEstoqueRepository implements EstoqueRepository {
     return { data, total, pages: Math.ceil(total / limit) };
   }
 
+  findSaidaById(id: number) {
+    return this.prisma.stock_exits.findUnique({ where: { id } });
+  }
+
   async criarSaida(data: CriarSaidaDto, userId: string) {
     const [saida] = await this.prisma.$transaction([
       this.prisma.stock_exits.create({
@@ -159,6 +167,10 @@ export class PrismaEstoqueRepository implements EstoqueRepository {
     ]);
 
     return { data, total, pages: Math.ceil(total / limit) };
+  }
+
+  findTransferenciaById(id: number) {
+    return this.prisma.stock_transfers.findUnique({ where: { id } });
   }
 
   async criarTransferencia(data: CriarTransferenciaDto, userId: string) {
@@ -253,6 +265,16 @@ export class PrismaEstoqueRepository implements EstoqueRepository {
       ) AS movimentos
     `;
     return Number(rows[0]?.saldo ?? 0);
+  }
+
+  // ── Empresas ──────────────────────────────────────────────────────────────
+
+  findEmpresas() {
+    return this.prisma.empresas.findMany({
+      where: { oculto: false },
+      select: { id: true, nomeEmpresa: true, cnpj: true, cidade: true },
+      orderBy: { nomeEmpresa: 'asc' },
+    });
   }
 
   // ── Dashboard ─────────────────────────────────────────────────────────────

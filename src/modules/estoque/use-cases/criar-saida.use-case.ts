@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import type { stock_exits } from '@prisma/client';
 import { type Either, left, right } from '../../../core/either';
 import type { CriarSaidaDto } from '../dto/criar-saida.dto';
-import type { EstoqueRepository } from '../repositories/estoque.repository';
+import { EstoqueRepository } from '../repositories/estoque.repository';
 import { ProdutoNaoEncontradoError } from './errors/produto-nao-encontrado.error';
 import { SaldoInsuficienteError } from './errors/saldo-insuficiente.error';
 

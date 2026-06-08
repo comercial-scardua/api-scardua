@@ -1,20 +1,29 @@
 import { Injectable } from '@nestjs/common';
 import { type Either, left, right } from '../../../core/either';
 import type { AtualizarPatrimonioDto } from '../dto/atualizar-patrimonio.dto';
-import type { PatrimoniosRepository } from '../repositories/patrimonios.repository';
+import { PrismaService } from '../../../prisma/prisma.service';
+import { PatrimoniosRepository } from '../repositories/patrimonios.repository';
 import { PatrimonioNaoEncontradoError } from './errors/patrimonio-nao-encontrado.error';
 
 type AtualizarResult = Either<PatrimonioNaoEncontradoError, { id: number }>;
 
 @Injectable()
 export class AtualizarPatrimonioUseCase {
-  constructor(private repo: PatrimoniosRepository) {}
+  constructor(
+    private repo: PatrimoniosRepository,
+    private prisma: PrismaService,
+  ) {}
 
   async execute(
     id: number,
     dto: AtualizarPatrimonioDto,
-    autorColaboradorId?: number | null,
+    userId: string,
   ): Promise<AtualizarResult> {
+    const colaborador = await this.prisma.colaboradores.findFirst({
+      where: { userId },
+      select: { id: true },
+    });
+    const autorColaboradorId = colaborador?.id ?? null;
     const atual = await this.repo.findById(id);
     if (!atual) return left(new PatrimonioNaoEncontradoError(id));
 

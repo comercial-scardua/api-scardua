@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import type { EmpresasRepository } from '../repositories/empresas.repository';
+import { EmpresasRepository } from '../repositories/empresas.repository';
 
 @Injectable()
 export class ListarEmpresasUseCase {

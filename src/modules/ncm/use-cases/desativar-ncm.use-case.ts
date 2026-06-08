@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { type Either, left, right } from '../../../core/either';
-import type { NcmRepository } from '../repositories/ncm.repository';
+import { NcmRepository } from '../repositories/ncm.repository';
 import { NcmNaoEncontradoError } from './errors/ncm-nao-encontrado.error';
 
 type DesativarNcmResult = Either<NcmNaoEncontradoError, null>;

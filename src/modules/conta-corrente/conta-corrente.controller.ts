@@ -20,9 +20,9 @@ import { PermissionsGuard } from '../../auth/guards/permissions.guard';
 import type { JwtPayload } from '../../auth/types/jwt-payload.type';
 import type { CriarContaCorrenteDto } from './dto/criar-conta-corrente.dto';
 import type { CriarLancamentoDto } from './dto/criar-lancamento.dto';
-import type { ContaCorrenteRepository } from './repositories/conta-corrente.repository';
+import { ContaCorrenteRepository } from './repositories/conta-corrente.repository';
 import { ContaNaoEncontradaError } from './use-cases/errors/conta-nao-encontrada.error';
-import type { ExcluirContaUseCase } from './use-cases/excluir-conta.use-case';
+import { ExcluirContaUseCase } from './use-cases/excluir-conta.use-case';
 
 @ApiTags('Conta Corrente')
 @ApiBearerAuth()
@@ -33,6 +33,14 @@ export class ContaCorrenteController {
     private repo: ContaCorrenteRepository,
     private excluirUseCase: ExcluirContaUseCase,
   ) {}
+
+  @Get('stats')
+  @HttpCode(200)
+  @ApiOperation({ summary: 'Estatísticas de contas corrente (próprias; ?all=true para global)' })
+  @ApiQuery({ name: 'all', required: false, type: Boolean })
+  stats(@CurrentUser() user: JwtPayload, @Query('all') all?: string) {
+    return this.repo.stats(user.userId, all === 'true');
+  }
 
   @Get()
   @HttpCode(200)

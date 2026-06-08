@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { right } from '../../../core/either';
 import type { CriarNcmDto } from '../dto/criar-ncm.dto';
-import type { NcmRepository } from '../repositories/ncm.repository';
+import { NcmRepository } from '../repositories/ncm.repository';
 
 @Injectable()
 export class ImportarNcmUseCase {

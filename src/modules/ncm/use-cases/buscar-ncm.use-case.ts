@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import type { ncm } from '@prisma/client';
 import { type Either, left, right } from '../../../core/either';
-import type { NcmRepository } from '../repositories/ncm.repository';
+import { NcmRepository } from '../repositories/ncm.repository';
 import { NcmNaoEncontradoError } from './errors/ncm-nao-encontrado.error';
 
 type BuscarNcmResult = Either<NcmNaoEncontradoError, { ncm: ncm }>;

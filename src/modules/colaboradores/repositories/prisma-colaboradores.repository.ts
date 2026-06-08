@@ -234,4 +234,11 @@ export class PrismaColaboradoresRepository implements ColaboradoresRepository {
       data: { oculto: true, updatedAt: new Date() },
     });
   }
+
+  updateFoto(id: number, fotoUrl: string): Promise<colaboradores> {
+    return this.prisma.colaboradores.update({
+      where: { id },
+      data: { foto: fotoUrl, updatedAt: new Date() },
+    });
+  }
 }

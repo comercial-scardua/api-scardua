@@ -3,7 +3,7 @@ import type { permission } from '@prisma/client'
 import { PermissionsGuard } from '../../../auth/guards/permissions.guard'
 import { type Either, left, right } from '../../../core/either'
 import type { DefinirPermissaoPaginaDto } from '../dto/definir-permissao-pagina.dto'
-import type { PermissoesRepository } from '../repositories/permissoes.repository'
+import { PermissoesRepository } from '../repositories/permissoes.repository'
 import { UsuarioNaoEncontradoError } from './errors/usuario-nao-encontrado.error'
 
 type DefinirPermissaoPaginaResult = Either<

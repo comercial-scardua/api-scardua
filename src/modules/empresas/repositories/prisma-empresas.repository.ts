@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import type { PrismaService } from '../../../prisma/prisma.service';
+import { PrismaService } from '../../../prisma/prisma.service';
 import type { AtualizarEmpresaDto } from '../dto/atualizar-empresa.dto';
 import type { CriarEmpresaDto } from '../dto/criar-empresa.dto';
 import type {

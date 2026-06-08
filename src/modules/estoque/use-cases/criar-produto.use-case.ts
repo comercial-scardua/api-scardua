@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import type { products } from '@prisma/client';
 import { type Either, left, right } from '../../../core/either';
 import type { CriarProdutoDto } from '../dto/criar-produto.dto';
-import type { EstoqueRepository } from '../repositories/estoque.repository';
+import { EstoqueRepository } from '../repositories/estoque.repository';
 import { CodigoJaCadastradoError } from './errors/codigo-ja-cadastrado.error';
 
 type CriarProdutoResult = Either<CodigoJaCadastradoError, { produto: products }>;

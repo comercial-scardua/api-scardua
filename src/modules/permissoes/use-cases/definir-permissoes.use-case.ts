@@ -2,10 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { PermissionsGuard } from '../../../auth/guards/permissions.guard';
 import { type Either, left, right } from '../../../core/either';
 import type { DefinirPermissoesDto } from '../dto/definir-permissoes.dto';
-import type {
-  PermissoesRepository,
-  PermissoesUsuario,
-} from '../repositories/permissoes.repository';
+import { PermissoesRepository } from '../repositories/permissoes.repository'
+import type { PermissoesUsuario } from '../repositories/permissoes.repository';
 import { UsuarioNaoEncontradoError } from './errors/usuario-nao-encontrado.error';
 
 type DefinirPermissoesResult = Either<

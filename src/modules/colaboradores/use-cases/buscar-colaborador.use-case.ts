@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { type Either, left, right } from '../../../core/either';
-import type { ColaboradoresRepository } from '../repositories/colaboradores.repository';
+import { ColaboradoresRepository } from '../repositories/colaboradores.repository';
 import { ColaboradorNaoEncontradoError } from './errors/colaborador-nao-encontrado.error';
 
 type BuscarColaboradorResult = Either<

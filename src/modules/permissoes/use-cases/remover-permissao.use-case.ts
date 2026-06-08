@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { type Either, left, right } from '../../../core/either';
 import { PermissionsGuard } from '../../../auth/guards/permissions.guard';
-import type { PermissoesRepository } from '../repositories/permissoes.repository';
+import { PermissoesRepository } from '../repositories/permissoes.repository';
 import { PermissaoNaoEncontradaError } from './errors/permissao-nao-encontrada.error';
 
 type RemoverPermissaoResult = Either<PermissaoNaoEncontradaError, null>;

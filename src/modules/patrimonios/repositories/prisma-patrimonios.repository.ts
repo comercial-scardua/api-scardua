@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import type { PrismaService } from '../../../prisma/prisma.service';
+import { PrismaService } from '../../../prisma/prisma.service';
 import type { AtualizarPatrimonioDto } from '../dto/atualizar-patrimonio.dto';
 import type { CriarPatrimonioDto } from '../dto/criar-patrimonio.dto';
 import type { PatrimoniosRepository } from './patrimonios.repository';

@@ -4,8 +4,8 @@ import {
   ForbiddenException,
   Injectable,
 } from '@nestjs/common';
-import type { Reflector } from '@nestjs/core';
-import type { PrismaService } from '../../prisma/prisma.service';
+import { Reflector } from '@nestjs/core';
+import { PrismaService } from '../../prisma/prisma.service';
 import {
   PERMISSION_KEY,
   type RequiredPermission,

@@ -20,6 +20,17 @@ export type ResumoContas = {
   topFornecedores: { nome: string; valor: number; count: number }[];
 };
 
+export type StatsContas = {
+  totalContas: number;
+  totalContasVisiveis: number;
+  totalCreditos: number;
+  totalDebitos: number;
+  creditosMes: number;
+  debitosMes: number;
+  saldoGeral: number;
+  saldoMes: number;
+};
+
 export abstract class ContaCorrenteRepository {
   abstract findByUserId(userId: string): Promise<ContaComLancamentos[]>;
   abstract findAll(showHidden?: boolean): Promise<ContaComLancamentos[]>;
@@ -32,4 +43,5 @@ export abstract class ContaCorrenteRepository {
   abstract criarLancamento(contaId: number, data: CriarLancamentoDto): Promise<lancamentos>;
   abstract atualizarLancamento(lancamentoId: number, data: Partial<CriarLancamentoDto>): Promise<lancamentos>;
   abstract excluirLancamento(lancamentoId: number): Promise<void>;
+  abstract stats(userId: string, showAll: boolean): Promise<StatsContas>;
 }

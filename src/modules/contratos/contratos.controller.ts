@@ -27,15 +27,16 @@ import { RequirePermission } from '../../auth/decorators/require-permission.deco
 import { PermissionsGuard } from '../../auth/guards/permissions.guard';
 import type { AtualizarContratoDto } from './dto/atualizar-contrato.dto';
 import type { CriarContratoDto } from './dto/criar-contrato.dto';
-import type { ContratosRepository } from './repositories/contratos.repository';
-import type { AcaoContrato, AcaoContratoUseCase } from './use-cases/acao-contrato.use-case';
-import type { AtualizarContratoUseCase } from './use-cases/atualizar-contrato.use-case';
-import type { BuscarContratoUseCase } from './use-cases/buscar-contrato.use-case';
-import type { CriarContratoUseCase } from './use-cases/criar-contrato.use-case';
-import type { ExcluirContratoUseCase } from './use-cases/excluir-contrato.use-case';
+import { ContratosRepository } from './repositories/contratos.repository';
+import { AcaoContratoUseCase } from './use-cases/acao-contrato.use-case'
+import type { AcaoContrato } from './use-cases/acao-contrato.use-case';
+import { AtualizarContratoUseCase } from './use-cases/atualizar-contrato.use-case';
+import { BuscarContratoUseCase } from './use-cases/buscar-contrato.use-case';
+import { CriarContratoUseCase } from './use-cases/criar-contrato.use-case';
+import { ExcluirContratoUseCase } from './use-cases/excluir-contrato.use-case';
 import { ContratoNaoEncontradoError } from './use-cases/errors/contrato-nao-encontrado.error';
 import { NumeroJaCadastradoError } from './use-cases/errors/numero-ja-cadastrado.error';
-import type { GerenciarArquivoContratoUseCase } from './use-cases/gerenciar-arquivo-contrato.use-case';
+import { GerenciarArquivoContratoUseCase } from './use-cases/gerenciar-arquivo-contrato.use-case';
 
 @ApiTags('Contratos')
 @ApiBearerAuth()

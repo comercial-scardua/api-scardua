@@ -1,9 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { type Either, left, right } from '../../../core/either';
-import type {
-  EmpresaCompleta,
-  EmpresasRepository,
-} from '../repositories/empresas.repository';
+import { EmpresasRepository } from '../repositories/empresas.repository'
+import type { EmpresaCompleta } from '../repositories/empresas.repository';
 import { EmpresaNaoEncontradaError } from './errors/empresa-nao-encontrada.error';
 
 type BuscarEmpresaResult = Either<

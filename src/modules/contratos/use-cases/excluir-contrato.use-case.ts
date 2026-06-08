@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { type Either, left, right } from '../../../core/either';
-import type { SupabaseService } from '../../../common/supabase/supabase.service';
-import type { ContratosRepository } from '../repositories/contratos.repository';
+import { SupabaseService } from '../../../common/supabase/supabase.service';
+import { ContratosRepository } from '../repositories/contratos.repository';
 import { ContratoNaoEncontradoError } from './errors/contrato-nao-encontrado.error';
 
 type ExcluirContratoResult = Either<ContratoNaoEncontradoError, null>;

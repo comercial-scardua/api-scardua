@@ -6,6 +6,8 @@ import {
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { ZodValidationPipe } from 'nestjs-zod';
 import { AppModule } from './app.module';
+import { AllExceptionsFilter } from './common/filters/http-exception.filter';
+import { EnvService } from './env/env.service';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestFastifyApplication>(
@@ -13,13 +15,16 @@ async function bootstrap() {
     new FastifyAdapter({ logger: false }),
   );
 
+  const env = app.get(EnvService);
+
   app.enableCors({
-    origin: process.env.FRONTEND_URL?.split(',') || ['http://localhost:3000'],
+    origin: env.get('FRONTEND_URL').split(','),
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   });
 
   app.useGlobalPipes(new ZodValidationPipe());
+  app.useGlobalFilters(new AllExceptionsFilter());
 
   app.setGlobalPrefix('api');
 
@@ -36,7 +41,7 @@ async function bootstrap() {
     SwaggerModule.createDocument(app, swaggerConfig),
   );
 
-  const port = process.env.PORT ?? 3001;
+  const port = env.get('PORT');
   await app.listen(port, '0.0.0.0');
   console.log(`[NestJS] http://localhost:${port}/api`);
   console.log(`[Swagger] http://localhost:${port}/docs`);

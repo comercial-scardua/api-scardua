@@ -15,4 +15,5 @@ export abstract class ColaboradoresRepository {
     data: Partial<CriarColaboradorDto>,
   ): Promise<colaboradores>;
   abstract softDelete(id: number): Promise<colaboradores>;
+  abstract updateFoto(id: number, fotoUrl: string): Promise<colaboradores>;
 }

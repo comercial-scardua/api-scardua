@@ -17,23 +17,24 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { ApiBearerAuth, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiConsumes, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { CurrentUser } from '../../auth/decorators/current-user.decorator';
 import { RequirePermission } from '../../auth/decorators/require-permission.decorator';
 import { PermissionsGuard } from '../../auth/guards/permissions.guard';
 import type { JwtPayload } from '../../auth/types/jwt-payload.type';
-import type { SupabaseService } from '../../common/supabase/supabase.service';
-import { randomUUID } from 'crypto';
-import { extname } from 'path';
 import type { CriarEntradaDto } from './dto/criar-entrada.dto';
 import type { CriarProdutoDto } from './dto/criar-produto.dto';
 import type { CriarSaidaDto } from './dto/criar-saida.dto';
 import type { CriarTransferenciaDto } from './dto/criar-transferencia.dto';
-import type { EstoqueRepository } from './repositories/estoque.repository';
-import type { CriarProdutoUseCase } from './use-cases/criar-produto.use-case';
-import type { CriarSaidaUseCase } from './use-cases/criar-saida.use-case';
-import type { CriarTransferenciaUseCase } from './use-cases/criar-transferencia.use-case';
+import { EstoqueRepository } from './repositories/estoque.repository';
+import { AtualizarProdutoUseCase } from './use-cases/atualizar-produto.use-case';
+import { CriarEntradaUseCase } from './use-cases/criar-entrada.use-case';
+import { CriarProdutoUseCase } from './use-cases/criar-produto.use-case';
+import { CriarSaidaUseCase } from './use-cases/criar-saida.use-case';
+import { CriarTransferenciaUseCase } from './use-cases/criar-transferencia.use-case';
+import { DesativarProdutoUseCase } from './use-cases/desativar-produto.use-case';
 import { CodigoJaCadastradoError } from './use-cases/errors/codigo-ja-cadastrado.error';
+import { ProdutoNaoEncontradoError } from './use-cases/errors/produto-nao-encontrado.error';
 import { SaldoInsuficienteError } from './use-cases/errors/saldo-insuficiente.error';
 
 @ApiTags('Estoque')
@@ -44,9 +45,11 @@ export class EstoqueController {
   constructor(
     private repo: EstoqueRepository,
     private criarProduto: CriarProdutoUseCase,
+    private atualizarProduto: AtualizarProdutoUseCase,
+    private desativarProduto: DesativarProdutoUseCase,
+    private criarEntrada: CriarEntradaUseCase,
     private criarSaida: CriarSaidaUseCase,
     private criarTransferencia: CriarTransferenciaUseCase,
-    private supabase: SupabaseService,
   ) {}
 
   // ── Dashboard e saldos ────────────────────────────────────────────────────
@@ -63,16 +66,26 @@ export class EstoqueController {
   @HttpCode(200)
   @RequirePermission('estoque', 'access')
   @ApiOperation({ summary: 'Matriz de saldos produto × empresa (SQL raw)' })
+  @ApiQuery({ name: 'produtoId', required: false, type: Number })
+  @ApiQuery({ name: 'empresaId', required: false, type: Number })
   async saldoFiliais(
     @Query('produtoId') produtoId?: number,
     @Query('empresaId') empresaId?: number,
   ) {
     const [produtos, empresas, saldos] = await Promise.all([
       this.repo.findProdutos({ status: 'ATIVO', ...(produtoId && { search: String(produtoId) }) }),
-      Promise.resolve([]),
+      this.repo.findEmpresas(),
       this.repo.saldoFiliais(produtoId, empresaId),
     ]);
     return { produtos: produtos.data, empresas, saldos };
+  }
+
+  @Get('empresas')
+  @HttpCode(200)
+  @RequirePermission('estoque', 'access')
+  @ApiOperation({ summary: 'Listar empresas disponíveis para movimentações de estoque' })
+  findEmpresas() {
+    return this.repo.findEmpresas();
   }
 
   // ── Produtos ──────────────────────────────────────────────────────────────
@@ -81,6 +94,11 @@ export class EstoqueController {
   @HttpCode(200)
   @RequirePermission('estoque', 'access')
   @ApiOperation({ summary: 'Listar produtos com paginação e filtros' })
+  @ApiQuery({ name: 'search', required: false })
+  @ApiQuery({ name: 'categoria', required: false })
+  @ApiQuery({ name: 'status', required: false })
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
   findProdutos(
     @Query('search') search?: string,
     @Query('categoria') categoria?: string,
@@ -109,13 +127,7 @@ export class EstoqueController {
     const result = await this.criarProduto.execute(dto, user.userId);
 
     if (result.isLeft()) {
-      const error = result.value;
-      switch (error.constructor) {
-        case CodigoJaCadastradoError:
-          throw new ConflictException(error.message);
-        default:
-          throw new ConflictException(error.message);
-      }
+      throw new ConflictException(result.value.message);
     }
 
     return result.value.produto;
@@ -129,9 +141,13 @@ export class EstoqueController {
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: Partial<CriarProdutoDto>,
   ) {
-    const existe = await this.repo.findProdutoById(id);
-    if (!existe) throw new NotFoundException(`Produto #${id} não encontrado`);
-    return this.repo.atualizarProduto(id, dto);
+    const result = await this.atualizarProduto.execute(id, dto);
+
+    if (result.isLeft()) {
+      throw new NotFoundException(result.value.message);
+    }
+
+    return result.value.produto;
   }
 
   @Delete('produtos/:id')
@@ -139,9 +155,11 @@ export class EstoqueController {
   @RequirePermission('estoque', 'edit')
   @ApiOperation({ summary: 'Desativar produto (status = INATIVO)' })
   async deleteProduto(@Param('id', ParseIntPipe) id: number) {
-    const existe = await this.repo.findProdutoById(id);
-    if (!existe) throw new NotFoundException(`Produto #${id} não encontrado`);
-    await this.repo.desativarProduto(id);
+    const result = await this.desativarProduto.execute(id);
+
+    if (result.isLeft()) {
+      throw new NotFoundException(result.value.message);
+    }
   }
 
   // ── Entradas ──────────────────────────────────────────────────────────────
@@ -150,6 +168,12 @@ export class EstoqueController {
   @HttpCode(200)
   @RequirePermission('estoque', 'access')
   @ApiOperation({ summary: 'Listar entradas com filtros' })
+  @ApiQuery({ name: 'produtoId', required: false, type: Number })
+  @ApiQuery({ name: 'numeroNotaFiscal', required: false })
+  @ApiQuery({ name: 'dataInicio', required: false })
+  @ApiQuery({ name: 'dataFim', required: false })
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
   findEntradas(
     @Query('produtoId') produtoId?: number,
     @Query('numeroNotaFiscal') numeroNotaFiscal?: string,
@@ -159,6 +183,16 @@ export class EstoqueController {
     @Query('limit') limit?: number,
   ) {
     return this.repo.findEntradas({ produtoId, numeroNotaFiscal, dataInicio, dataFim, page, limit });
+  }
+
+  @Get('entradas/:id')
+  @HttpCode(200)
+  @RequirePermission('estoque', 'access')
+  @ApiOperation({ summary: 'Buscar entrada por ID' })
+  async findEntrada(@Param('id', ParseIntPipe) id: number) {
+    const entrada = await this.repo.findEntradaById(id);
+    if (!entrada) throw new NotFoundException(`Entrada #${id} não encontrada`);
+    return entrada;
   }
 
   @Post('entradas')
@@ -172,17 +206,13 @@ export class EstoqueController {
     @CurrentUser() user: JwtPayload,
     @UploadedFile() file?: Express.Multer.File,
   ) {
-    const produto = await this.repo.findProdutoById(dto.produtoId);
-    if (!produto) throw new NotFoundException(`Produto #${dto.produtoId} não encontrado`);
+    const result = await this.criarEntrada.execute(dto, user.userId, file);
 
-    let arquivoUrl: string | undefined;
-    if (file) {
-      const ext = extname(file.originalname);
-      const path = `notas-fiscais/entrada_${Date.now()}_${randomUUID().slice(0, 8)}${ext}`;
-      arquivoUrl = await this.supabase.upload('uploads', path, file.buffer, file.mimetype);
+    if (result.isLeft()) {
+      throw new NotFoundException(result.value.message);
     }
 
-    return this.repo.criarEntrada(dto, user.userId, arquivoUrl);
+    return result.value.entrada;
   }
 
   // ── Saídas ────────────────────────────────────────────────────────────────
@@ -191,6 +221,13 @@ export class EstoqueController {
   @HttpCode(200)
   @RequirePermission('estoque', 'access')
   @ApiOperation({ summary: 'Listar saídas com filtros' })
+  @ApiQuery({ name: 'produtoId', required: false, type: Number })
+  @ApiQuery({ name: 'responsavel', required: false })
+  @ApiQuery({ name: 'motivo', required: false })
+  @ApiQuery({ name: 'dataInicio', required: false })
+  @ApiQuery({ name: 'dataFim', required: false })
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
   findSaidas(
     @Query('produtoId') produtoId?: number,
     @Query('responsavel') responsavel?: string,
@@ -203,6 +240,16 @@ export class EstoqueController {
     return this.repo.findSaidas({ produtoId, responsavel, motivo, dataInicio, dataFim, page, limit });
   }
 
+  @Get('saidas/:id')
+  @HttpCode(200)
+  @RequirePermission('estoque', 'access')
+  @ApiOperation({ summary: 'Buscar saída por ID' })
+  async findSaida(@Param('id', ParseIntPipe) id: number) {
+    const saida = await this.repo.findSaidaById(id);
+    if (!saida) throw new NotFoundException(`Saída #${id} não encontrada`);
+    return saida;
+  }
+
   @Post('saidas')
   @HttpCode(201)
   @RequirePermission('estoque', 'edit')
@@ -211,12 +258,11 @@ export class EstoqueController {
     const result = await this.criarSaida.execute(dto, user.userId);
 
     if (result.isLeft()) {
-      const error = result.value;
-      switch (error.constructor) {
+      switch (result.value.constructor) {
         case SaldoInsuficienteError:
-          throw new BadRequestException(error.message);
+          throw new BadRequestException(result.value.message);
         default:
-          throw new NotFoundException(error.message);
+          throw new NotFoundException(result.value.message);
       }
     }
 
@@ -229,6 +275,13 @@ export class EstoqueController {
   @HttpCode(200)
   @RequirePermission('estoque', 'access')
   @ApiOperation({ summary: 'Listar transferências com filtros' })
+  @ApiQuery({ name: 'produtoId', required: false, type: Number })
+  @ApiQuery({ name: 'empresaOrigemId', required: false, type: Number })
+  @ApiQuery({ name: 'empresaDestinoId', required: false, type: Number })
+  @ApiQuery({ name: 'dataInicio', required: false })
+  @ApiQuery({ name: 'dataFim', required: false })
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
   findTransferencias(
     @Query('produtoId') produtoId?: number,
     @Query('empresaOrigemId') empresaOrigemId?: number,
@@ -241,6 +294,16 @@ export class EstoqueController {
     return this.repo.findTransferencias({ produtoId, empresaOrigemId, empresaDestinoId, dataInicio, dataFim, page, limit });
   }
 
+  @Get('transferencias/:id')
+  @HttpCode(200)
+  @RequirePermission('estoque', 'access')
+  @ApiOperation({ summary: 'Buscar transferência por ID' })
+  async findTransferencia(@Param('id', ParseIntPipe) id: number) {
+    const transferencia = await this.repo.findTransferenciaById(id);
+    if (!transferencia) throw new NotFoundException(`Transferência #${id} não encontrada`);
+    return transferencia;
+  }
+
   @Post('transferencias')
   @HttpCode(201)
   @RequirePermission('estoque', 'edit')
@@ -249,12 +312,11 @@ export class EstoqueController {
     const result = await this.criarTransferencia.execute(dto, user.userId);
 
     if (result.isLeft()) {
-      const error = result.value;
-      switch (error.constructor) {
+      switch (result.value.constructor) {
         case SaldoInsuficienteError:
-          throw new BadRequestException(error.message);
+          throw new BadRequestException(result.value.message);
         default:
-          throw new NotFoundException(error.message);
+          throw new NotFoundException(result.value.message);
       }
     }
 

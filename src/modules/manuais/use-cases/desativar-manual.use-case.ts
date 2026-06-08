@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { type Either, left, right } from '../../../core/either';
-import type { ManuaisRepository } from '../repositories/manuais.repository';
+import { ManuaisRepository } from '../repositories/manuais.repository';
 import { ManualNaoEncontradoError } from './errors/manual-nao-encontrado.error';
 
 type DesativarManualResult = Either<ManualNaoEncontradoError, null>;

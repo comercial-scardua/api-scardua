@@ -25,13 +25,13 @@ import { PermissionsGuard } from '../../auth/guards/permissions.guard';
 import type { JwtPayload } from '../../auth/types/jwt-payload.type';
 import type { AtualizarNcmDto } from './dto/atualizar-ncm.dto';
 import type { CriarNcmDto } from './dto/criar-ncm.dto';
-import type { AtualizarNcmUseCase } from './use-cases/atualizar-ncm.use-case';
-import type { BuscarNcmUseCase } from './use-cases/buscar-ncm.use-case';
-import type { CriarNcmUseCase } from './use-cases/criar-ncm.use-case';
-import type { DesativarNcmUseCase } from './use-cases/desativar-ncm.use-case';
+import { AtualizarNcmUseCase } from './use-cases/atualizar-ncm.use-case';
+import { BuscarNcmUseCase } from './use-cases/buscar-ncm.use-case';
+import { CriarNcmUseCase } from './use-cases/criar-ncm.use-case';
+import { DesativarNcmUseCase } from './use-cases/desativar-ncm.use-case';
 import { NcmDuplicadoError } from './use-cases/errors/ncm-duplicado.error';
-import type { ImportarNcmUseCase } from './use-cases/importar-ncm.use-case';
-import type { ListarNcmUseCase } from './use-cases/listar-ncm.use-case';
+import { ImportarNcmUseCase } from './use-cases/importar-ncm.use-case';
+import { ListarNcmUseCase } from './use-cases/listar-ncm.use-case';
 
 @ApiTags('NCM')
 @ApiBearerAuth()

@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import type { contratos } from '@prisma/client';
 import { type Either, left, right } from '../../../core/either';
 import type { AtualizarContratoDto } from '../dto/atualizar-contrato.dto';
-import type { ContratosRepository } from '../repositories/contratos.repository';
+import { ContratosRepository } from '../repositories/contratos.repository';
 import { ContratoNaoEncontradoError } from './errors/contrato-nao-encontrado.error';
 
 type AtualizarContratoResult = Either<ContratoNaoEncontradoError, { contrato: contratos }>;

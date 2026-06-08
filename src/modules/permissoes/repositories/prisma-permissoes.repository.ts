@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import type { permission } from '@prisma/client';
-import type { PrismaService } from '../../../prisma/prisma.service';
+import { PrismaService } from '../../../prisma/prisma.service';
 import type { DefinirPermissaoPaginaDto } from '../dto/definir-permissao-pagina.dto';
 import type { DefinirPermissoesDto } from '../dto/definir-permissoes.dto';
 import { PAGINAS } from '../paginas.constant';

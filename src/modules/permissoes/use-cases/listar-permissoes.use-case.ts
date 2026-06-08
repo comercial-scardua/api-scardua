@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import type { PermissoesRepository } from '../repositories/permissoes.repository';
+import { PermissoesRepository } from '../repositories/permissoes.repository';
 
 @Injectable()
 export class ListarPermissoesUseCase {

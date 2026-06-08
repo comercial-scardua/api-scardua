@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import type { ncm } from '@prisma/client';
-import type { PrismaService } from '../../../prisma/prisma.service';
+import { PrismaService } from '../../../prisma/prisma.service';
 import type { AtualizarNcmDto } from '../dto/atualizar-ncm.dto';
 import type { CriarNcmDto } from '../dto/criar-ncm.dto';
 import type { NcmRepository, NcmUniqueKey } from './ncm.repository';

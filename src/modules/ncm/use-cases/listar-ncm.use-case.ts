@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import type { NcmRepository } from '../repositories/ncm.repository';
+import { NcmRepository } from '../repositories/ncm.repository';
 
 @Injectable()
 export class ListarNcmUseCase {

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { type Either, left, right } from '../../../core/either';
-import type { PatrimoniosRepository } from '../repositories/patrimonios.repository';
+import { PatrimoniosRepository } from '../repositories/patrimonios.repository';
 import { PatrimonioNaoEncontradoError } from './errors/patrimonio-nao-encontrado.error';
 
 type AlternarResult = Either<PatrimonioNaoEncontradoError, { oculto: boolean }>;

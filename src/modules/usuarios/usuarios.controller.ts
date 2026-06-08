@@ -24,14 +24,14 @@ import { PermissionsGuard } from '../../auth/guards/permissions.guard';
 import type { JwtPayload } from '../../auth/types/jwt-payload.type';
 import type { AtualizarUsuarioDto } from './dto/atualizar-usuario.dto';
 import type { CriarUsuarioDto } from './dto/criar-usuario.dto';
-import type { UsuariosRepository } from './repositories/usuarios.repository';
-import type { AtualizarUsuarioUseCase } from './use-cases/atualizar-usuario.use-case';
-import type { BuscarUsuarioUseCase } from './use-cases/buscar-usuario.use-case';
-import type { CriarUsuarioUseCase } from './use-cases/criar-usuario.use-case';
-import type { DesativarUsuarioUseCase } from './use-cases/desativar-usuario.use-case';
+import { UsuariosRepository } from './repositories/usuarios.repository';
+import { AtualizarUsuarioUseCase } from './use-cases/atualizar-usuario.use-case';
+import { BuscarUsuarioUseCase } from './use-cases/buscar-usuario.use-case';
+import { CriarUsuarioUseCase } from './use-cases/criar-usuario.use-case';
+import { DesativarUsuarioUseCase } from './use-cases/desativar-usuario.use-case';
 import { CpfJaCadastradoError } from './use-cases/errors/cpf-ja-cadastrado.error';
 import { EmailJaCadastradoError } from './use-cases/errors/email-ja-cadastrado.error';
-import type { ListarUsuariosUseCase } from './use-cases/listar-usuarios.use-case';
+import { ListarUsuariosUseCase } from './use-cases/listar-usuarios.use-case';
 
 @ApiTags('Usuários')
 @ApiBearerAuth()

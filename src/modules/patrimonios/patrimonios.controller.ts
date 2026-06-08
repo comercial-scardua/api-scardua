@@ -17,13 +17,13 @@ import { CurrentUser } from '../../auth/decorators/current-user.decorator';
 import { RequirePermission } from '../../auth/decorators/require-permission.decorator';
 import { PermissionsGuard } from '../../auth/guards/permissions.guard';
 import type { JwtPayload } from '../../auth/types/jwt-payload.type';
-import type { PrismaService } from '../../prisma/prisma.service';
 import type { AtualizarPatrimonioDto } from './dto/atualizar-patrimonio.dto';
 import type { CriarPatrimonioDto } from './dto/criar-patrimonio.dto';
-import type { PatrimoniosRepository } from './repositories/patrimonios.repository';
-import type { AlternarVisibilidadePatrimonioUseCase } from './use-cases/alternar-visibilidade-patrimonio.use-case';
-import type { AtualizarPatrimonioUseCase } from './use-cases/atualizar-patrimonio.use-case';
-import type { BuscarPatrimonioUseCase } from './use-cases/buscar-patrimonio.use-case';
+import { PatrimoniosRepository } from './repositories/patrimonios.repository';
+import { AlternarVisibilidadePatrimonioUseCase } from './use-cases/alternar-visibilidade-patrimonio.use-case';
+import { AtualizarPatrimonioUseCase } from './use-cases/atualizar-patrimonio.use-case';
+import { BuscarPatrimonioUseCase } from './use-cases/buscar-patrimonio.use-case';
+import { CriarPatrimonioUseCase } from './use-cases/criar-patrimonio.use-case';
 
 @ApiTags('Patrimônios')
 @ApiBearerAuth()
@@ -33,9 +33,9 @@ export class PatrimoniosController {
   constructor(
     private repo: PatrimoniosRepository,
     private buscar: BuscarPatrimonioUseCase,
+    private criar: CriarPatrimonioUseCase,
     private atualizar: AtualizarPatrimonioUseCase,
     private alternarVisibilidade: AlternarVisibilidadePatrimonioUseCase,
-    private prisma: PrismaService,
   ) {}
 
   @Get()
@@ -89,8 +89,9 @@ export class PatrimoniosController {
   @HttpCode(201)
   @RequirePermission('patrimonio', 'edit')
   @ApiOperation({ summary: 'Criar patrimônio' })
-  create(@Body() dto: CriarPatrimonioDto) {
-    return this.repo.create(dto);
+  async create(@Body() dto: CriarPatrimonioDto) {
+    const result = await this.criar.execute(dto);
+    return this.repo.findById(result.value.id);
   }
 
   @Patch(':id')
@@ -102,15 +103,8 @@ export class PatrimoniosController {
     @Body() dto: AtualizarPatrimonioDto,
     @CurrentUser() user: JwtPayload,
   ) {
-    // Busca o colaborador vinculado ao usuário logado para usar como autorId na movimentação
-    const colaborador = await this.prisma.colaboradores.findFirst({
-      where: { userId: user.userId },
-      select: { id: true },
-    });
-
-    const result = await this.atualizar.execute(id, dto, colaborador?.id ?? null);
+    const result = await this.atualizar.execute(id, dto, user.userId);
     if (result.isLeft()) throw new NotFoundException(result.value.message);
-
     return this.repo.findById(id);
   }
 

@@ -15,11 +15,11 @@ import { PermissionsGuard } from '../../auth/guards/permissions.guard';
 import type { DefinirPermissaoPaginaDto } from './dto/definir-permissao-pagina.dto';
 import type { DefinirPermissoesDto } from './dto/definir-permissoes.dto';
 import { PAGINAS } from './paginas.constant';
-import type { DefinirPermissaoPaginaUseCase } from './use-cases/definir-permissao-pagina.use-case';
-import type { DefinirPermissoesUseCase } from './use-cases/definir-permissoes.use-case';
+import { DefinirPermissaoPaginaUseCase } from './use-cases/definir-permissao-pagina.use-case';
+import { DefinirPermissoesUseCase } from './use-cases/definir-permissoes.use-case';
 import { UsuarioNaoEncontradoError } from './use-cases/errors/usuario-nao-encontrado.error';
-import type { ListarPermissoesUseCase } from './use-cases/listar-permissoes.use-case';
-import type { RemoverPermissaoUseCase } from './use-cases/remover-permissao.use-case';
+import { ListarPermissoesUseCase } from './use-cases/listar-permissoes.use-case';
+import { RemoverPermissaoUseCase } from './use-cases/remover-permissao.use-case';
 
 @ApiTags('Permissões')
 @ApiBearerAuth()

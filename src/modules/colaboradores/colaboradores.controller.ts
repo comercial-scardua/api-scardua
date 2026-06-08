@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   ConflictException,
   Controller,
@@ -11,10 +12,14 @@ import {
   Patch,
   Post,
   Query,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import {
   ApiBearerAuth,
+  ApiConsumes,
   ApiOperation,
   ApiQuery,
   ApiTags,
@@ -24,13 +29,14 @@ import { RequirePermission } from '../../auth/decorators/require-permission.deco
 import { PermissionsGuard } from '../../auth/guards/permissions.guard';
 import type { JwtPayload } from '../../auth/types/jwt-payload.type';
 import type { CriarColaboradorDto } from './dto/criar-colaborador.dto';
-import type { ColaboradoresRepository } from './repositories/colaboradores.repository';
-import type { AtualizarColaboradorUseCase } from './use-cases/atualizar-colaborador.use-case';
-import type { BuscarColaboradorUseCase } from './use-cases/buscar-colaborador.use-case';
-import type { CriarColaboradorUseCase } from './use-cases/criar-colaborador.use-case';
-import type { DesativarColaboradorUseCase } from './use-cases/desativar-colaborador.use-case';
+import { ColaboradoresRepository } from './repositories/colaboradores.repository';
+import { AtualizarColaboradorUseCase } from './use-cases/atualizar-colaborador.use-case';
+import { AtualizarFotoColaboradorUseCase } from './use-cases/atualizar-foto-colaborador.use-case';
+import { BuscarColaboradorUseCase } from './use-cases/buscar-colaborador.use-case';
+import { CriarColaboradorUseCase } from './use-cases/criar-colaborador.use-case';
+import { DesativarColaboradorUseCase } from './use-cases/desativar-colaborador.use-case';
 import { CpfJaCadastradoError } from './use-cases/errors/cpf-ja-cadastrado.error';
-import type { ListarColaboradoresUseCase } from './use-cases/listar-colaboradores.use-case';
+import { ListarColaboradoresUseCase } from './use-cases/listar-colaboradores.use-case';
 
 @ApiTags('Colaboradores')
 @ApiBearerAuth()
@@ -43,6 +49,7 @@ export class ColaboradoresController {
     private criar: CriarColaboradorUseCase,
     private atualizar: AtualizarColaboradorUseCase,
     private desativar: DesativarColaboradorUseCase,
+    private atualizarFoto: AtualizarFotoColaboradorUseCase,
     private repo: ColaboradoresRepository,
   ) {}
 
@@ -113,6 +120,27 @@ export class ColaboradoresController {
     }
 
     return result.value.colaborador;
+  }
+
+  @Patch(':id/foto')
+  @HttpCode(200)
+  @RequirePermission('colaboradores', 'edit')
+  @UseInterceptors(FileInterceptor('foto', { limits: { fileSize: 5 * 1024 * 1024 } }))
+  @ApiConsumes('multipart/form-data')
+  @ApiOperation({ summary: 'Atualizar foto do colaborador (upload para Supabase)' })
+  async updateFoto(
+    @Param('id', ParseIntPipe) id: number,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    if (!file) throw new BadRequestException('Arquivo de foto é obrigatório');
+
+    const result = await this.atualizarFoto.execute(id, file);
+
+    if (result.isLeft()) {
+      throw new NotFoundException(result.value.message);
+    }
+
+    return { fotoUrl: result.value.fotoUrl };
   }
 
   @Delete(':id')

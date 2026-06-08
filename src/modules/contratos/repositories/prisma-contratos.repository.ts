@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import type { PrismaService } from '../../../prisma/prisma.service';
+import { PrismaService } from '../../../prisma/prisma.service';
 import type { AtualizarContratoDto } from '../dto/atualizar-contrato.dto';
 import type { CriarContratoDto } from '../dto/criar-contrato.dto';
 import type { ContratosRepository } from './contratos.repository';

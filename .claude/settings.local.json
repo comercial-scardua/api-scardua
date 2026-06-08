@@ -10,7 +10,13 @@
       "Bash(dir *)",
       "Read(//c/Users/angelo.belelli/Documents/GitHub/comercialscarduaapp/**)",
       "Bash(Get-ChildItem -Path . -Force)",
-      "Bash(Select-Object Name, FullName)"
+      "Bash(Select-Object Name, FullName)",
+      "Bash(Get-ChildItem -Path \"src/app/api/epi\" -Recurse -Filter \"route.ts\")",
+      "Bash(Select-Object -ExpandProperty FullName)",
+      "Bash(Get-ChildItem *)",
+      "Bash(Select-Object Name)",
+      "Bash(Sort-Object)",
+      "Bash(Measure-Object -Line)"
     ]
   }
 }

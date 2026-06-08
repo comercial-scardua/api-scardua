@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import type { PrismaService } from '../../../prisma/prisma.service';
+import { PrismaService } from '../../../prisma/prisma.service';
 import type { CriarContaCorrenteDto } from '../dto/criar-conta-corrente.dto';
 import type { CriarLancamentoDto } from '../dto/criar-lancamento.dto';
-import type { ContaCorrenteRepository, ContaComLancamentos } from './conta-corrente.repository';
+import type { ContaCorrenteRepository, ContaComLancamentos, StatsContas } from './conta-corrente.repository';
 
 const INCLUDE_COMPLETO = {
   empresa: { select: { id: true, nomeEmpresa: true } },
@@ -169,5 +169,44 @@ export class PrismaContaCorrenteRepository implements ContaCorrenteRepository {
 
   async excluirLancamento(lancamentoId: number): Promise<void> {
     await this.prisma.lancamentos.delete({ where: { id: lancamentoId } });
+  }
+
+  async stats(userId: string, showAll: boolean): Promise<StatsContas> {
+    const contas = await this.prisma.conta_corrente.findMany({
+      where: showAll ? {} : { userId },
+      include: { lancamentos: true },
+    });
+
+    const visiveis = contas.filter((c) => !c.oculto);
+    const inicioMes = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+
+    let totalCreditos = 0;
+    let totalDebitos = 0;
+    let creditosMes = 0;
+    let debitosMes = 0;
+
+    for (const conta of visiveis) {
+      for (const l of conta.lancamentos) {
+        const c = l.credito ? parseFloat(l.credito) : 0;
+        const d = l.debito ? parseFloat(l.debito) : 0;
+        totalCreditos += c;
+        totalDebitos += d;
+        if (new Date(l.data) >= inicioMes) {
+          creditosMes += c;
+          debitosMes += d;
+        }
+      }
+    }
+
+    return {
+      totalContas: contas.length,
+      totalContasVisiveis: visiveis.length,
+      totalCreditos,
+      totalDebitos,
+      creditosMes,
+      debitosMes,
+      saldoGeral: totalCreditos - totalDebitos,
+      saldoMes: creditosMes - debitosMes,
+    };
   }
 }
