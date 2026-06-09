@@ -11,9 +11,11 @@ import {
   Patch,
   Post,
   Query,
+  Response,
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
+import type { Response as ExpressResponse } from 'express';
 import { RequirePermission } from '../../auth/decorators/require-permission.decorator';
 import { PermissionsGuard } from '../../auth/guards/permissions.guard';
 import type { RegistrarPontoDto } from './dto/registrar-ponto.dto';
@@ -25,6 +27,10 @@ import { ListarSaldosUseCase } from './use-cases/listar-saldos.use-case';
 import { ObterSaldoHorasUseCase } from './use-cases/obter-saldo-horas.use-case';
 import { RegistrarPontoUseCase } from './use-cases/registrar-ponto.use-case';
 import { ColaboradorNaoEncontradoBancoHorasError } from './use-cases/errors/colaborador-nao-encontrado.error';
+import { ObterEstatisticasUseCase } from './use-cases/obter-estatisticas.use-case';
+import { GerarRelatorioUseCase } from './use-cases/gerar-relatorio.use-case';
+import { GerarTermoPdfUseCase } from './use-cases/gerar-termo-pdf.use-case';
+import { ObterContaCorrenteUseCase } from './use-cases/obter-conta-corrente.use-case';
 
 @ApiTags('Banco de Horas')
 @ApiBearerAuth()
@@ -39,6 +45,10 @@ export class BancoHorasController {
     private deletarRegistroUseCase: DeletarRegistroUseCase,
     private obterSaldoUseCase: ObterSaldoHorasUseCase,
     private listarSaldosUseCase: ListarSaldosUseCase,
+    private obterEstatisticasUseCase: ObterEstatisticasUseCase,
+    private gerarRelatorioUseCase: GerarRelatorioUseCase,
+    private gerarTermoPdfUseCase: GerarTermoPdfUseCase,
+    private obterContaCorrenteUseCase: ObterContaCorrenteUseCase,
   ) {}
 
   @Post('registros')
@@ -135,5 +145,86 @@ export class BancoHorasController {
   @ApiOperation({ summary: 'Listar saldos de horas de todos os colaboradores' })
   async listarSaldosHoras() {
     return this.listarSaldosUseCase.execute();
+  }
+
+  @Get('estatisticas')
+  @HttpCode(200)
+  @RequirePermission('banco-horas', 'access')
+  @ApiOperation({ summary: 'Obter estatísticas de horas' })
+  @ApiQuery({ name: 'dataInicio', required: false, type: String })
+  @ApiQuery({ name: 'dataFim', required: false, type: String })
+  @ApiQuery({ name: 'colaboradorId', required: false, type: Number })
+  async obterEstatisticas(
+    @Query('dataInicio') dataInicio?: string,
+    @Query('dataFim') dataFim?: string,
+    @Query('colaboradorId', new ParseIntPipe({ optional: true })) colaboradorId?: number,
+  ): Promise<any> {
+    return this.obterEstatisticasUseCase.execute(
+      dataInicio ? new Date(dataInicio) : undefined,
+      dataFim ? new Date(dataFim) : undefined,
+      colaboradorId,
+    );
+  }
+
+  @Get('relatorios')
+  @HttpCode(200)
+  @RequirePermission('banco-horas', 'access')
+  @ApiOperation({ summary: 'Gerar relatório de horas em JSON' })
+  @ApiQuery({ name: 'dataInicio', required: false, type: String })
+  @ApiQuery({ name: 'dataFim', required: false, type: String })
+  @ApiQuery({ name: 'colaboradorId', required: false, type: Number })
+  async gerarRelatorio(
+    @Query('dataInicio') dataInicio?: string,
+    @Query('dataFim') dataFim?: string,
+    @Query('colaboradorId', new ParseIntPipe({ optional: true })) colaboradorId?: number,
+  ): Promise<any> {
+    return this.gerarRelatorioUseCase.execute(
+      dataInicio ? new Date(dataInicio) : undefined,
+      dataFim ? new Date(dataFim) : undefined,
+      colaboradorId,
+    );
+  }
+
+  @Get('conta-corrente')
+  @HttpCode(200)
+  @RequirePermission('banco-horas', 'access')
+  @ApiOperation({ summary: 'Obter conta corrente de horas' })
+  @ApiQuery({ name: 'colaboradorId', required: false, type: Number })
+  async obterContaCorrente(@Query('colaboradorId', new ParseIntPipe({ optional: true })) colaboradorId?: number) {
+    if (colaboradorId) {
+      return this.obterContaCorrenteUseCase.executePorColaborador(colaboradorId);
+    }
+    return this.obterContaCorrenteUseCase.executeTodas();
+  }
+
+  @Get('termo/:colaboradorId/pdf')
+  @HttpCode(200)
+  @RequirePermission('banco-horas', 'access')
+  @ApiOperation({ summary: 'Gerar termo de banco de horas em PDF' })
+  @ApiQuery({ name: 'dataInicio', required: false, type: String })
+  @ApiQuery({ name: 'dataFim', required: false, type: String })
+  async gerarTermoPdf(
+    @Param('colaboradorId', ParseIntPipe) colaboradorId: number,
+    @Response() res: ExpressResponse,
+    @Query('dataInicio') dataInicio?: string,
+    @Query('dataFim') dataFim?: string,
+  ) {
+    try {
+      const pdfStream = await this.gerarTermoPdfUseCase.execute(
+        colaboradorId,
+        dataInicio ? new Date(dataInicio) : undefined,
+        dataFim ? new Date(dataFim) : undefined,
+      );
+
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader(
+        'Content-Disposition',
+        `attachment; filename="termo-banco-horas-${colaboradorId}.pdf"`,
+      );
+
+      pdfStream.pipe(res);
+    } catch (error) {
+      res.status(404).json({ error: (error as Error).message });
+    }
   }
 }

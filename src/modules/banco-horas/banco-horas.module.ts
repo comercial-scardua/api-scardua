@@ -9,6 +9,10 @@ import { AtualizarRegistroUseCase } from './use-cases/atualizar-registro.use-cas
 import { DeletarRegistroUseCase } from './use-cases/deletar-registro.use-case';
 import { ObterSaldoHorasUseCase } from './use-cases/obter-saldo-horas.use-case';
 import { ListarSaldosUseCase } from './use-cases/listar-saldos.use-case';
+import { ObterEstatisticasUseCase } from './use-cases/obter-estatisticas.use-case';
+import { GerarRelatorioUseCase } from './use-cases/gerar-relatorio.use-case';
+import { GerarTermoPdfUseCase } from './use-cases/gerar-termo-pdf.use-case';
+import { ObterContaCorrenteUseCase } from './use-cases/obter-conta-corrente.use-case';
 
 @Module({
   controllers: [BancoHorasController],
@@ -24,6 +28,10 @@ import { ListarSaldosUseCase } from './use-cases/listar-saldos.use-case';
     DeletarRegistroUseCase,
     ObterSaldoHorasUseCase,
     ListarSaldosUseCase,
+    ObterEstatisticasUseCase,
+    GerarRelatorioUseCase,
+    GerarTermoPdfUseCase,
+    ObterContaCorrenteUseCase,
   ],
 })
 export class BancoHorasModule {}
