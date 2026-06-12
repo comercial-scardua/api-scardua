@@ -8,6 +8,7 @@ import { AuthModule } from './auth/auth.module';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { OracleBridgeModule } from './common/oracle-bridge/oracle-bridge.module';
 import { SupabaseModule } from './common/supabase/supabase.module';
+import { AniversariantesModule } from './modules/aniversariantes/aniversariantes.module';
 import { BancoHorasModule } from './modules/banco-horas/banco-horas.module';
 import { ColaboradoresModule } from './modules/colaboradores/colaboradores.module';
 import { ContratosModule } from './modules/contratos/contratos.module';
@@ -41,6 +42,7 @@ import { PrismaModule } from './prisma/prisma.module';
     SupabaseModule,
     OracleBridgeModule,
     AuthModule,
+    AniversariantesModule,
     BancoHorasModule,
     ColaboradoresModule,
     UsuariosModule,
