@@ -17,6 +17,7 @@ import {
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
+import { PrismaService } from '../../prisma/prisma.service';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiBearerAuth, ApiConsumes, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { CurrentUser } from '../../auth/decorators/current-user.decorator';
@@ -51,6 +52,7 @@ export class EstoqueController {
     private criarEntrada: CriarEntradaUseCase,
     private criarSaida: CriarSaidaUseCase,
     private criarTransferencia: CriarTransferenciaUseCase,
+    private prisma: PrismaService,
   ) {}
 
   // ── Dashboard e saldos ────────────────────────────────────────────────────
@@ -151,6 +153,19 @@ export class EstoqueController {
     return result.value.produto;
   }
 
+  @Post('produtos/:id')
+  @HttpCode(200)
+  @RequirePermission('estoque', 'edit')
+  @ApiOperation({ summary: 'Atualizar produto (POST alias para PUT)' })
+  async updateProdutoPost(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: Partial<CriarProdutoDto>,
+  ) {
+    const result = await this.atualizarProduto.execute(id, dto);
+    if (result.isLeft()) throw new NotFoundException(result.value.message);
+    return result.value.produto;
+  }
+
   @Delete('produtos/:id')
   @HttpCode(204)
   @RequirePermission('estoque', 'edit')
@@ -214,6 +229,19 @@ export class EstoqueController {
     }
 
     return result.value.entrada;
+  }
+
+  @Post('entradas/:id')
+  @HttpCode(200)
+  @RequirePermission('estoque', 'edit')
+  @ApiOperation({ summary: 'Atualizar entrada por ID (campos parciais)' })
+  async updateEntradaPost(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() body: Partial<CriarEntradaDto>,
+  ) {
+    const existe = await this.repo.findEntradaById(id);
+    if (!existe) throw new NotFoundException(`Entrada #${id} não encontrada`);
+    return this.prisma.stock_entries.update({ where: { id }, data: body as any });
   }
 
   @Delete('entradas/:id')
@@ -280,6 +308,19 @@ export class EstoqueController {
     return result.value.saida;
   }
 
+  @Post('saidas/:id')
+  @HttpCode(200)
+  @RequirePermission('estoque', 'edit')
+  @ApiOperation({ summary: 'Atualizar saída por ID (campos parciais)' })
+  async updateSaidaPost(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() body: Partial<CriarSaidaDto>,
+  ) {
+    const existe = await this.repo.findSaidaById(id);
+    if (!existe) throw new NotFoundException(`Saída #${id} não encontrada`);
+    return this.prisma.stock_exits.update({ where: { id }, data: body as any });
+  }
+
   @Delete('saidas/:id')
   @HttpCode(204)
   @RequirePermission('estoque', 'edit')
@@ -323,6 +364,19 @@ export class EstoqueController {
     const transferencia = await this.repo.findTransferenciaById(id);
     if (!transferencia) throw new NotFoundException(`Transferência #${id} não encontrada`);
     return transferencia;
+  }
+
+  @Post('transferencias/:id')
+  @HttpCode(200)
+  @RequirePermission('estoque', 'edit')
+  @ApiOperation({ summary: 'Atualizar transferência por ID (campos parciais)' })
+  async updateTransferenciaPost(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() body: Partial<CriarTransferenciaDto>,
+  ) {
+    const existe = await this.repo.findTransferenciaById(id);
+    if (!existe) throw new NotFoundException(`Transferência #${id} não encontrada`);
+    return this.prisma.stock_transfers.update({ where: { id }, data: body as any });
   }
 
   @Post('transferencias')

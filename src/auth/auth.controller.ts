@@ -85,4 +85,13 @@ export class AuthController {
     if (!username) throw new BadRequestException('Parâmetro "username" é obrigatório');
     return this.auth.verifyUsername(username);
   }
+
+  @Public()
+  @Post('verify-username')
+  @HttpCode(200)
+  @ApiOperation({ summary: 'Verificar se nome/email de usuário existe (POST)' })
+  verifyUsernamePost(@Body('username') username: string) {
+    if (!username) throw new BadRequestException('Parâmetro "username" é obrigatório');
+    return this.auth.verifyUsername(username);
+  }
 }

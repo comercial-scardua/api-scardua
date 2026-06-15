@@ -16,6 +16,7 @@ import {
   UseGuards,
 } from '@nestjs/common'
 import { ApiBearerAuth, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger'
+import { PrismaService } from '../../prisma/prisma.service'
 import { CurrentUser } from '../../auth/decorators/current-user.decorator'
 import { RequirePermission } from '../../auth/decorators/require-permission.decorator'
 import { PermissionsGuard } from '../../auth/guards/permissions.guard'
@@ -70,6 +71,7 @@ export class EpiController {
     private excluirEstoqueMovimentacao: ExcluirEstoqueMovimentacaoUseCase,
     private criarTransferencia: CriarTransferenciaEpiUseCase,
     private excluirTransferencia: ExcluirTransferenciaEpiUseCase,
+    private prisma: PrismaService,
   ) {}
 
   // ── Perfil ────────────────────────────────────────────────────────────────
@@ -229,6 +231,15 @@ export class EpiController {
     return result.value.link
   }
 
+  @Get('cargo-epi/:id')
+  @RequirePermission('epi', 'access')
+  @ApiOperation({ summary: 'Buscar vínculo EPI × Cargo por ID' })
+  async findCargoEpiLinkById(@Param('id', ParseIntPipe) id: number) {
+    const link = await this.prisma.epi_cargo_obrigatorio.findUnique({ where: { id } })
+    if (!link) throw new NotFoundException(`Vínculo EPI × Cargo #${id} não encontrado`)
+    return link
+  }
+
   @Delete('cargo-epi/:id')
   @HttpCode(204)
   @RequirePermission('epi', 'edit')
@@ -256,6 +267,19 @@ export class EpiController {
     return result.value.colaboradores
   }
 
+  @Get('colaboradores/:id')
+  @RequirePermission('epi', 'access')
+  @ApiOperation({ summary: 'Dados EPI de um colaborador específico' })
+  async findColaboradorById(@Param('id', ParseIntPipe) id: number) {
+    const colaborador = await this.prisma.colaboradores.findUnique({
+      where: { id },
+      select: { id: true, nome: true, sobrenome: true, cargo: true, empresa: true, oculto: true },
+    })
+    if (!colaborador) throw new NotFoundException(`Colaborador #${id} não encontrado`)
+    const movimentacoes = await this.repo.findMovimentacoesByColaborador(id)
+    return { ...colaborador, movimentacoes }
+  }
+
   @Put('colaboradores/:id')
   @RequirePermission('epi', 'edit')
   @ApiOperation({
@@ -275,6 +299,19 @@ export class EpiController {
   @ApiOperation({ summary: 'Histórico de movimentações do colaborador' })
   findMovimentacoesByColaborador(@Param('id', ParseIntPipe) id: number) {
     return this.repo.findMovimentacoesByColaborador(id)
+  }
+
+  @Post('movimentacoes/colaborador/:id')
+  @HttpCode(201)
+  @RequirePermission('epi', 'edit')
+  @ApiOperation({ summary: 'Registrar movimentação para um colaborador específico' })
+  async createMovimentacaoForColaborador(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: CriarMovimentacaoEpiDto,
+  ) {
+    const result = await this.criarMovimentacao.execute({ ...dto, colaborador_id: id })
+    if (result.isLeft()) throw new BadRequestException(result.value.message)
+    return result.value.movimentacao
   }
 
   @Get('movimentacoes')
@@ -353,6 +390,15 @@ export class EpiController {
     const result = await this.criarEstoqueMovimentacao.execute(dto)
     if (result.isLeft()) throw new BadRequestException(result.value.message)
     return result.value.movimentacao
+  }
+
+  @Get('estoque/:id')
+  @RequirePermission('epi', 'access')
+  @ApiOperation({ summary: 'Buscar movimentação de estoque por ID' })
+  async findEstoqueById(@Param('id', ParseIntPipe) id: number) {
+    const item = await this.prisma.epi_estoque_movimentacoes.findUnique({ where: { id } })
+    if (!item) throw new NotFoundException(`Movimentação de estoque #${id} não encontrada`)
+    return item
   }
 
   @Put('estoque/:id')
@@ -477,6 +523,15 @@ export class EpiController {
     const result = await this.criarTransferencia.execute(dto)
     if (result.isLeft()) throw new BadRequestException(result.value.message)
     return result.value.transferencia
+  }
+
+  @Get('transferencias/:id')
+  @RequirePermission('epi', 'access')
+  @ApiOperation({ summary: 'Buscar transferência por ID' })
+  async findTransferenciaById(@Param('id', ParseIntPipe) id: number) {
+    const item = await this.prisma.epi_transferencias.findUnique({ where: { id } })
+    if (!item) throw new NotFoundException(`Transferência #${id} não encontrada`)
+    return item
   }
 
   @Delete('transferencias/:id')

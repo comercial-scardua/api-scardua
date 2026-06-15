@@ -59,6 +59,25 @@ export class ContaCorrenteController {
     return this.repo.findAll(showHidden);
   }
 
+  @Post('todos')
+  @HttpCode(201)
+  @RequirePermission('contacorrentetodos', 'access')
+  @ApiOperation({ summary: 'Criar conta corrente (via rota /todos)' })
+  createViaTodos(@Body() dto: CriarContaCorrenteDto, @CurrentUser() user: JwtPayload) {
+    return this.repo.create(dto, user.userId);
+  }
+
+  @Put('todos')
+  @HttpCode(200)
+  @RequirePermission('contacorrentetodos', 'access')
+  @ApiOperation({ summary: 'Atualizar conta corrente (id no body, via rota /todos)' })
+  async updateViaTodos(@Body() body: Partial<CriarContaCorrenteDto> & { id: number }) {
+    if (!body.id) throw new NotFoundException('id é obrigatório no body');
+    const existe = await this.repo.findById(body.id);
+    if (!existe) throw new NotFoundException(`Conta corrente #${body.id} não encontrada`);
+    return this.repo.update(body.id, body);
+  }
+
   @Get('usuario/:userId')
   @HttpCode(200)
   @RequirePermission('contacorrente', 'access')
@@ -67,10 +86,39 @@ export class ContaCorrenteController {
     return this.repo.findByUserId(userId);
   }
 
+  @Post('usuario/:userId')
+  @HttpCode(201)
+  @RequirePermission('contacorrente', 'access')
+  @ApiOperation({ summary: 'Criar conta corrente para um usuário específico' })
+  createForUsuario(@Param('userId') userId: string, @Body() dto: CriarContaCorrenteDto) {
+    return this.repo.create(dto, userId);
+  }
+
+  @Put('usuario/:userId')
+  @HttpCode(200)
+  @RequirePermission('contacorrente', 'access')
+  @ApiOperation({ summary: 'Atualizar conta corrente de um usuário (id no body)' })
+  async updateForUsuario(
+    @Param('userId') userId: string,
+    @Body() body: Partial<CriarContaCorrenteDto> & { id: number },
+  ) {
+    if (!body.id) throw new NotFoundException('id é obrigatório no body');
+    const existe = await this.repo.findById(body.id);
+    if (!existe) throw new NotFoundException(`Conta corrente #${body.id} não encontrada`);
+    return this.repo.update(body.id, body);
+  }
+
   @Get('resumo/:userId')
   @HttpCode(200)
   @ApiOperation({ summary: 'Resumo financeiro de um usuário' })
   resumo(@Param('userId') userId: string) {
+    return this.repo.resumo(userId);
+  }
+
+  @Post('resumo/:userId')
+  @HttpCode(200)
+  @ApiOperation({ summary: 'Resumo financeiro de um usuário (POST alias)' })
+  resumoPost(@Param('userId') userId: string) {
     return this.repo.resumo(userId);
   }
 

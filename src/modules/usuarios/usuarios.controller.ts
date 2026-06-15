@@ -151,6 +151,55 @@ export class UsuariosController {
     return result;
   }
 
+  @Get('permissions')
+  @HttpCode(200)
+  @RequirePermission('usuarios', 'access')
+  @ApiOperation({ summary: 'Listar permissões (todas ou por userId via ?userId=)' })
+  async getPermissions(@Query('userId') userId?: string) {
+    const perms = await this.prisma.permission.findMany({ where: userId ? { userId } : {} });
+    const result: Record<string, Record<string, { canAccess: boolean; canEdit: boolean; canDelete: boolean }>> = {};
+    for (const p of perms) {
+      if (!result[p.userId]) result[p.userId] = {};
+      result[p.userId][p.page] = { canAccess: p.canAccess, canEdit: p.canEdit, canDelete: p.canDelete };
+    }
+    return result;
+  }
+
+  @Post('permissions')
+  @HttpCode(200)
+  @RequirePermission('usuarios', 'edit')
+  @ApiOperation({ summary: 'Definir/atualizar permissão de uma página para um usuário' })
+  async setPermission(
+    @Body() body: { userId: string; page: string; canAccess?: boolean; canEdit?: boolean; canDelete?: boolean },
+  ) {
+    const { userId, page, canAccess = false, canEdit = false, canDelete = false } = body;
+    if (!userId || !page) throw new BadRequestException('userId e page são obrigatórios');
+    return this.prisma.permission.upsert({
+      where: { userId_page: { userId, page } },
+      update: { canAccess, canEdit, canDelete },
+      create: { userId, page, canAccess, canEdit, canDelete },
+    });
+  }
+
+  @Post('updatepermissions')
+  @HttpCode(200)
+  @RequirePermission('usuarios', 'edit')
+  @ApiOperation({ summary: 'Atualizar múltiplas permissões de um usuário' })
+  async updatePermissions(
+    @Body() body: { userId: string; permissions: Record<string, { canAccess: boolean; canEdit: boolean; canDelete: boolean }> },
+  ) {
+    const { userId, permissions } = body;
+    if (!userId) throw new BadRequestException('userId é obrigatório');
+    for (const [page, perms] of Object.entries(permissions)) {
+      await this.prisma.permission.upsert({
+        where: { userId_page: { userId, page } },
+        update: perms,
+        create: { userId, page, ...perms },
+      });
+    }
+    return { message: 'Permissões atualizadas', userId };
+  }
+
   @Get(':id')
   @HttpCode(200)
   @RequirePermission('usuarios', 'access')

@@ -11,6 +11,7 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  Put,
   Query,
   UploadedFile,
   UseGuards,
@@ -70,6 +71,17 @@ export class ColaboradoresController {
   @ApiOperation({ summary: 'Perfil do colaborador logado' })
   findMe(@CurrentUser() user: JwtPayload) {
     return this.repo.findByUserId(user.userId);
+  }
+
+  @Put()
+  @HttpCode(200)
+  @RequirePermission('colaboradores', 'edit')
+  @ApiOperation({ summary: 'Atualizar colaborador (id no body — padrão legado)' })
+  async updateByBody(@Body() dto: Partial<CriarColaboradorDto> & { id: number }) {
+    if (!dto.id) throw new BadRequestException('id é obrigatório no body');
+    const result = await this.atualizar.execute(dto.id, dto);
+    if (result.isLeft()) throw new NotFoundException(result.value.message);
+    return result.value.colaborador;
   }
 
   @Get(':id')
@@ -155,6 +167,16 @@ export class ColaboradoresController {
     if (result.isLeft()) {
       throw new NotFoundException(result.value.message);
     }
+  }
+
+  @Get(':id/foto')
+  @HttpCode(200)
+  @RequirePermission('colaboradores', 'access')
+  @ApiOperation({ summary: 'Obter URL da foto do colaborador' })
+  async getFoto(@Param('id', ParseIntPipe) id: number) {
+    const colaborador = await this.repo.findById(id);
+    if (!colaborador) throw new NotFoundException(`Colaborador #${id} não encontrado`);
+    return { fotoUrl: (colaborador as any).foto ?? null };
   }
 
   @Get(':id/termos')

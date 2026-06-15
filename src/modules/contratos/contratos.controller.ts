@@ -26,6 +26,7 @@ import {
 import { RequirePermission } from '../../auth/decorators/require-permission.decorator';
 import { PermissionsGuard } from '../../auth/guards/permissions.guard';
 import { SupabaseService } from '../../common/supabase/supabase.service';
+import { PrismaService } from '../../prisma/prisma.service';
 import { randomUUID } from 'crypto';
 import type { AtualizarContratoDto } from './dto/atualizar-contrato.dto';
 import type { CriarContratoDto } from './dto/criar-contrato.dto';
@@ -54,6 +55,7 @@ export class ContratosController {
     private excluir: ExcluirContratoUseCase,
     private gerenciarArquivo: GerenciarArquivoContratoUseCase,
     private supabase: SupabaseService,
+    private prisma: PrismaService,
   ) {}
 
   @Get()
@@ -158,6 +160,21 @@ export class ContratosController {
     const result = await this.gerenciarArquivo.adicionar(id, file);
     if (result.isLeft()) throw new NotFoundException(result.value.message);
     return result.value;
+  }
+
+  @Post(':id/arquivos/:arquivoId')
+  @HttpCode(200)
+  @RequirePermission('contratos', 'access')
+  @ApiOperation({ summary: 'Buscar arquivo específico do contrato' })
+  async findArquivo(
+    @Param('id', ParseIntPipe) id: number,
+    @Param('arquivoId', ParseIntPipe) arquivoId: number,
+  ) {
+    const arquivo = await this.prisma.contrato_arquivos.findFirst({
+      where: { id: arquivoId, contrato_id: id },
+    });
+    if (!arquivo) throw new NotFoundException(`Arquivo #${arquivoId} não encontrado no contrato #${id}`);
+    return arquivo;
   }
 
   @Delete(':id/arquivos/:arquivoId')
