@@ -25,7 +25,7 @@ import {
 } from '@nestjs/swagger';
 import { RequirePermission } from '../../auth/decorators/require-permission.decorator';
 import { PermissionsGuard } from '../../auth/guards/permissions.guard';
-import type { SupabaseService } from '../../common/supabase/supabase.service';
+import { SupabaseService } from '../../common/supabase/supabase.service';
 import { randomUUID } from 'crypto';
 import type { AtualizarContratoDto } from './dto/atualizar-contrato.dto';
 import type { CriarContratoDto } from './dto/criar-contrato.dto';

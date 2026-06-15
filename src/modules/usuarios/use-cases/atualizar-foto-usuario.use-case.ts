@@ -2,8 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { extname } from 'path';
 import { randomUUID } from 'crypto';
 import { type Either, left, right } from '../../../core/either';
-import type { SupabaseService } from '../../../common/supabase/supabase.service';
-import type { PrismaService } from '../../../prisma/prisma.service';
+import { SupabaseService } from '../../../common/supabase/supabase.service';
+import { PrismaService } from '../../../prisma/prisma.service';
 import { UsuarioNaoEncontradoError } from './errors/usuario-nao-encontrado.error';
 
 type AtualizarFotoResult = Either<UsuarioNaoEncontradoError, { fotoUrl: string }>;

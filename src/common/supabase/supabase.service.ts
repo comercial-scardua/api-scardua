@@ -46,6 +46,24 @@ export class SupabaseService {
     return { signedUrl: data.signedUrl, token: data.token, path: data.path };
   }
 
+  getPublicUrl(bucket: string, path: string): string {
+    const { data } = this.client.storage.from(bucket).getPublicUrl(path);
+    return data.publicUrl;
+  }
+
+  async createSignedDownloadUrl(
+    bucket: string,
+    path: string,
+    expiresIn = 60,
+  ): Promise<string> {
+    const { data, error } = await this.client.storage
+      .from(bucket)
+      .createSignedUrl(path, expiresIn);
+
+    if (error) throw new Error(`Supabase signed download URL error: ${error.message}`);
+    return data.signedUrl;
+  }
+
   extractPathFromUrl(url: string, bucket: string): string | null {
     try {
       const marker = `/storage/v1/object/public/${bucket}/`;

@@ -10,6 +10,7 @@ import {
   ParseIntPipe,
   Post,
   Put,
+  Query,
   UploadedFile,
   UseGuards,
   UseInterceptors,
@@ -53,6 +54,14 @@ export class ManuaisController {
   @RequirePermission('manuais', 'access')
   @ApiOperation({ summary: 'Listar manuais ativos (sem descrição)' })
   findAll() {
+    return this.repo.findAll();
+  }
+
+  @Get('details')
+  @HttpCode(200)
+  @RequirePermission('manuais', 'access')
+  @ApiOperation({ summary: 'Listar manuais com detalhes (inclui contagem de arquivos)' })
+  findAllDetails() {
     return this.repo.findAll();
   }
 
@@ -122,6 +131,35 @@ export class ManuaisController {
     const result = await this.gerenciarArquivo.adicionar(id, file);
     if (result.isLeft()) throw new NotFoundException(result.value.message);
     return result.value;
+  }
+
+  @Get(':id/remove-arquivo')
+  @HttpCode(200)
+  @RequirePermission('manuais', 'edit')
+  @ApiOperation({ summary: 'Remover arquivo do manual via query param (compatibilidade legacy)' })
+  async removeArquivoLegacy(
+    @Param('id', ParseIntPipe) id: number,
+    @Query('arquivoId', ParseIntPipe) arquivoId: number,
+  ) {
+    if (!arquivoId) throw new BadRequestException('arquivoId é obrigatório');
+    const result = await this.gerenciarArquivo.remover(id, arquivoId);
+    if (result.isLeft()) throw new NotFoundException(result.value.message);
+    return { removed: true, arquivoId };
+  }
+
+  @Get(':id/Arquivos/:arquivoId')
+  @HttpCode(200)
+  @RequirePermission('manuais', 'access')
+  @ApiOperation({ summary: 'Buscar arquivo específico do manual' })
+  async findArquivo(
+    @Param('id', ParseIntPipe) id: number,
+    @Param('arquivoId', ParseIntPipe) arquivoId: number,
+  ) {
+    const result = await this.buscar.execute(id);
+    if (result.isLeft()) throw new NotFoundException(result.value.message);
+    const arquivo = (result.value.manual as any).arquivos?.find((a: any) => a.id === arquivoId);
+    if (!arquivo) throw new NotFoundException(`Arquivo #${arquivoId} não encontrado no manual #${id}`);
+    return arquivo;
   }
 
   @Delete(':id/arquivos/:arquivoId')

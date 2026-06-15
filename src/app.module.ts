@@ -10,16 +10,31 @@ import { OracleBridgeModule } from './common/oracle-bridge/oracle-bridge.module'
 import { SupabaseModule } from './common/supabase/supabase.module';
 import { AniversariantesModule } from './modules/aniversariantes/aniversariantes.module';
 import { BancoHorasModule } from './modules/banco-horas/banco-horas.module';
+import { CaixaViagemModule } from './modules/caixa-viagem/caixa-viagem.module';
+import { CheckCpfModule } from './modules/check-cpf/check-cpf.module';
 import { ColaboradoresModule } from './modules/colaboradores/colaboradores.module';
 import { ContratosModule } from './modules/contratos/contratos.module';
+import { DownloadModule } from './modules/download/download.module';
 import { EmpresasModule } from './modules/empresas/empresas.module';
+import { ErrosModule } from './modules/erros/erros.module';
+import { EventosModule } from './modules/eventos/eventos.module';
 import { ContaCorrenteModule } from './modules/conta-corrente/conta-corrente.module';
 import { EpiModule } from './modules/epi/epi.module';
 import { EstoqueModule } from './modules/estoque/estoque.module';
+import { GestorEmpresasModule } from './modules/gestor-empresas/gestor-empresas.module';
+import { HealthModule } from './modules/health/health.module';
+import { ImgProxyModule } from './modules/img-proxy/img-proxy.module';
 import { ManuaisModule } from './modules/manuais/manuais.module';
+import { MovimentacaoModule } from './modules/movimentacao/movimentacao.module';
 import { NcmModule } from './modules/ncm/ncm.module';
 import { PatrimoniosModule } from './modules/patrimonios/patrimonios.module';
 import { PermissoesModule } from './modules/permissoes/permissoes.module';
+import { ProtectedModule } from './modules/protected/protected.module';
+import { RelatoriosModule } from './modules/relatorios/relatorios.module';
+import { SgqModule } from './modules/sgq/sgq.module';
+import { StatusModule } from './modules/status/status.module';
+import { SuporteModule } from './modules/suporte/suporte.module';
+import { UploadImageModule } from './modules/upload-image/upload-image.module';
 import { UsuariosModule } from './modules/usuarios/usuarios.module';
 import { PrismaModule } from './prisma/prisma.module';
 
@@ -42,23 +57,36 @@ import { PrismaModule } from './prisma/prisma.module';
     SupabaseModule,
     OracleBridgeModule,
     AuthModule,
+    // Core modules
     AniversariantesModule,
     BancoHorasModule,
+    CaixaViagemModule,
     ColaboradoresModule,
-    UsuariosModule,
-    EmpresasModule,
-    PermissoesModule,
-    NcmModule,
-    ContratosModule,
-    ManuaisModule,
-    PatrimoniosModule,
     ContaCorrenteModule,
-    EstoqueModule,
+    ContratosModule,
+    EmpresasModule,
     EpiModule,
-    // Próximos módulos a migrar:
-    // CaixaViagemModule,
-    // PrecificadorModule,
-    // SuporteModule,
+    ErrosModule,
+    EstoqueModule,
+    EventosModule,
+    GestorEmpresasModule,
+    ManuaisModule,
+    MovimentacaoModule,
+    NcmModule,
+    PatrimoniosModule,
+    PermissoesModule,
+    RelatoriosModule,
+    SgqModule,
+    SuporteModule,
+    UsuariosModule,
+    // Utility modules
+    CheckCpfModule,
+    DownloadModule,
+    HealthModule,
+    ImgProxyModule,
+    ProtectedModule,
+    StatusModule,
+    UploadImageModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: JwtAuthGuard },

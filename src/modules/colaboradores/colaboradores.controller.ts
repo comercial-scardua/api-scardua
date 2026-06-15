@@ -28,7 +28,7 @@ import { CurrentUser } from '../../auth/decorators/current-user.decorator';
 import { RequirePermission } from '../../auth/decorators/require-permission.decorator';
 import { PermissionsGuard } from '../../auth/guards/permissions.guard';
 import type { JwtPayload } from '../../auth/types/jwt-payload.type';
-import type { PrismaService } from '../../prisma/prisma.service';
+import { PrismaService } from '../../prisma/prisma.service';
 import type { CriarColaboradorDto } from './dto/criar-colaborador.dto';
 import { ColaboradoresRepository } from './repositories/colaboradores.repository';
 import { AtualizarColaboradorUseCase } from './use-cases/atualizar-colaborador.use-case';

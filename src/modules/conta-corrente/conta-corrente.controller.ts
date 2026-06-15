@@ -132,6 +132,35 @@ export class ContaCorrenteController {
     return this.repo.toggleOculto(id);
   }
 
+  @Post('ocultar')
+  @HttpCode(200)
+  @RequirePermission('contacorrente', 'access')
+  @ApiOperation({ summary: 'Ocultar/exibir conta corrente por ID (via body)' })
+  async ocultar(@Body('id') id: number) {
+    if (!id) throw new NotFoundException('id é obrigatório');
+    const existe = await this.repo.findById(id);
+    if (!existe) throw new NotFoundException(`Conta corrente #${id} não encontrada`);
+    return this.repo.toggleOculto(id);
+  }
+
+  @Post('generate-termo')
+  @HttpCode(200)
+  @RequirePermission('contacorrente', 'access')
+  @ApiOperation({ summary: 'Gerar termo de conta corrente em JSON' })
+  async generateTermo(@Body('userId') userId: string) {
+    if (!userId) throw new NotFoundException('userId é obrigatório');
+    const contas = await this.repo.findByUserId(userId);
+    const resumo = await this.repo.resumo(userId);
+
+    return {
+      titulo: 'Termo de Conta Corrente',
+      dataGeracao: new Date().toISOString(),
+      userId,
+      resumo,
+      contas,
+    };
+  }
+
   // ── Lançamentos ──────────────────────────────────────────────────────────
 
   @Post(':id/lancamentos')

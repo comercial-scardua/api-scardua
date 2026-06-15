@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Get,
@@ -73,6 +74,41 @@ export class PatrimoniosController {
   ) {
     const patrimonio = await this.repo.findBySerial(serial, skipId);
     return { exists: !!patrimonio, patrimonio: patrimonio ?? null };
+  }
+
+  @Post('generate-doc')
+  @HttpCode(200)
+  @RequirePermission('patrimonio', 'access')
+  @ApiOperation({ summary: 'Gerar documentação de patrimônio em JSON' })
+  async generateDoc(@Body() body: { id?: number; ids?: number[] }) {
+    const { id, ids } = body;
+
+    if (!id && !ids?.length) {
+      throw new BadRequestException('Informe id ou ids para gerar a documentação');
+    }
+
+    const idsConsulta = ids?.length ? ids : [id!];
+
+    const patrimonios = await Promise.all(
+      idsConsulta.map(async (patrimonioId) => {
+        const result = await this.buscar.execute(patrimonioId);
+        if (result.isLeft()) return null;
+        return result.value.patrimonio;
+      }),
+    );
+
+    const encontrados = patrimonios.filter(Boolean);
+
+    if (!encontrados.length) {
+      throw new NotFoundException('Nenhum patrimônio encontrado');
+    }
+
+    return {
+      titulo: 'Documentação de Patrimônio',
+      dataGeracao: new Date().toISOString(),
+      total: encontrados.length,
+      patrimonios: encontrados,
+    };
   }
 
   @Get(':id')
