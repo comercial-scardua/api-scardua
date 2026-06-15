@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
-import type { CriarLancamentoDto } from '../dto/criar-lancamento.dto';
+import type { CriarLancamentoDto, LancamentoBulkDto } from '../dto/criar-lancamento.dto';
 
 @Injectable()
 export class LancamentoRepository {
@@ -24,6 +24,61 @@ export class LancamentoRepository {
     const exists = await this.prisma.lancamentos.findUnique({ where: { id } });
     if (!exists) throw new NotFoundException(`Lançamento #${id} não encontrado`);
     await this.prisma.lancamentos.delete({ where: { id } });
+  }
+
+  async removeByContaCorrenteId(contaCorrenteId: number) {
+    const result = await this.prisma.lancamentos.deleteMany({
+      where: { contaCorrenteId },
+    });
+    return { deleted: result.count, contaCorrenteId };
+  }
+
+  async createBulk(dto: LancamentoBulkDto) {
+    if (dto.clearExisting) {
+      await this.prisma.lancamentos.deleteMany({
+        where: { contaCorrenteId: dto.contaCorrenteId },
+      });
+    }
+
+    const items = dto.lancamentos?.length
+      ? dto.lancamentos
+      : dto.data
+        ? [{ data: dto.data, numeroDocumento: dto.numeroDocumento, observacao: dto.observacao, credito: dto.credito, debito: dto.debito }]
+        : [];
+
+    const criados = await Promise.all(
+      items.map((item) =>
+        this.prisma.lancamentos.create({
+          data: {
+            contaCorrenteId: dto.contaCorrenteId,
+            data: new Date(item.data),
+            numeroDocumento: item.numeroDocumento ?? null,
+            observacao: item.observacao ?? '',
+            credito: item.credito ?? null,
+            debito: item.debito ?? null,
+            updatedAt: new Date(),
+          },
+        }),
+      ),
+    );
+
+    return {
+      success: true,
+      message: `${criados.length} lançamento(s) criado(s)`,
+      lancamentos: criados,
+    };
+  }
+
+  async createBulkForUser(userId: number, dto: LancamentoBulkDto) {
+    const conta = await this.prisma.conta_corrente.findFirst({
+      where: { colaboradorId: userId },
+    });
+    if (!conta)
+      throw new NotFoundException(
+        `Conta corrente para colaborador #${userId} não encontrada`,
+      );
+
+    return this.createBulk({ ...dto, contaCorrenteId: conta.id });
   }
 
   async createForUser(

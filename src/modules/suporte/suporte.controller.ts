@@ -1,11 +1,13 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
   NotFoundException,
   Param,
   Post,
+  Put,
   UseGuards,
 } from '@nestjs/common'
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger'
@@ -57,11 +59,36 @@ export class SuporteController {
     return eventos
   }
 
+  @Put(':id')
+  @HttpCode(200)
+  @RequirePermission('suporte', 'edit')
+  @ApiOperation({ summary: 'Atualizar último evento de um ticket' })
+  async updateTicket(@Param('id') id: string, @Body() body: Record<string, unknown>) {
+    return this.repo.updateTicket(id, body)
+  }
+
+  @Delete(':id')
+  @HttpCode(200)
+  @RequirePermission('suporte', 'edit')
+  @ApiOperation({ summary: 'Excluir todos os eventos de um ticket' })
+  async deleteTicket(@Param('id') id: string) {
+    await this.repo.deleteTicket(id)
+    return { success: true, message: `Ticket "${id}" excluído` }
+  }
+
   @Get(':id/comentarios')
   @HttpCode(200)
   @RequirePermission('suporte', 'access')
   @ApiOperation({ summary: 'Listar comentários de um ticket' })
   async getComentarios(@Param('id') id: string) {
     return this.repo.findComentariosByTicketId(id)
+  }
+
+  @Post(':id/comentarios')
+  @HttpCode(201)
+  @RequirePermission('suporte', 'edit')
+  @ApiOperation({ summary: 'Adicionar comentário a um ticket' })
+  async addComentario(@Param('id') id: string, @Body() dto: CriarTicketSuporteDto) {
+    return this.repo.createComentario(id, dto)
   }
 }

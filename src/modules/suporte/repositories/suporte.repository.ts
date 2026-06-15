@@ -88,4 +88,45 @@ export class SuporteRepository {
       },
     })
   }
+
+  // ── Adicionar comentário a um ticket ─────────────────────────────────────
+
+  async createComentario(ticketId: string, data: CriarTicketSuporteDto) {
+    return this.prisma.historico_tickets.create({
+      data: {
+        id: randomUUID(),
+        ticketId,
+        tipoEvento: historico_tickets_tipoEvento.COMENTARIO_PUBLICO,
+        descricao: data.descricao,
+        autorNome: data.autorNome,
+        autorEmail: data.autorEmail,
+        dataCriacao: new Date(),
+        dataAtualizacao: new Date(),
+      },
+    })
+  }
+
+  // ── Atualizar último evento de um ticket ──────────────────────────────────
+
+  async updateTicket(ticketId: string, data: Record<string, unknown>) {
+    const ultimo = await this.prisma.historico_tickets.findFirst({
+      where: { ticketId },
+      orderBy: { dataCriacao: 'desc' },
+    })
+    if (!ultimo) return null
+
+    return this.prisma.historico_tickets.update({
+      where: { id: ultimo.id },
+      data: {
+        descricao: (data['descricao'] as string) ?? ultimo.descricao,
+        dataAtualizacao: new Date(),
+      },
+    })
+  }
+
+  // ── Excluir todos os eventos de um ticket ─────────────────────────────────
+
+  async deleteTicket(ticketId: string) {
+    await this.prisma.historico_tickets.deleteMany({ where: { ticketId } })
+  }
 }

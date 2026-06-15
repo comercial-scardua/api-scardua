@@ -1,0 +1,2411 @@
+### ============================================================
+### API Scardua — REST Client (VS Code REST Client / JetBrains)
+### ============================================================
+### Variáveis globais — ajuste conforme ambiente
+@baseUrl = http://localhost:3001/api
+@token= OiJlMWQ5YjgwOS0yZjUzLTQ0NDQtODQzMC0yZTZmOGMyYmI3OWEiLCJlbWFpbCI6ImFjcmlzaW8iLCJyb2xlIjoiQURNSU4iLCJpYXQiOjE3ODE1NTI0NTEsImV4cCI6MTc4MTYzODg1MX0.dDUcvChbUBx0gWoeh1xfMalEeN660zePJCIPUIYyQGU
+
+@userId = 1
+@userIdStr = e1d9b809-2f53-4444-8430-2e6f8c2bb79a
+
+### ─────────────────────────────────────────────────────────────
+### AUTH
+### ─────────────────────────────────────────────────────────────
+
+### Login
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "acrisio",
+  "password": "2529"
+}
+
+###
+
+### Refresh token
+POST {{baseUrl}}/auth/refresh-token
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{}
+
+###
+
+### Register
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "nome": "Teste",
+  "sobrenome": "Silva",
+  "email": "teste@scardua.com.br",
+  "cpf": "12345678901",
+  "password": "senha123",
+  "role": "user"
+}
+
+###
+
+### Reset password (GET — verificar username)
+GET {{baseUrl}}/auth/reset-password?username=admin@scardua.com.br
+Authorization: Bearer {{token}}
+
+###
+
+### Reset password (POST)
+POST {{baseUrl}}/auth/reset-password
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "username": "admin@scardua.com.br",
+  "currentPassword": "senhaAtual",
+  "newPassword": "novaSenha"
+}
+
+###
+
+### Verify password
+POST {{baseUrl}}/auth/verify-password
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+
+{
+  "username": "acrisio",
+  "password": "2529"
+}
+
+###
+
+### Verify username (GET)
+GET {{baseUrl}}/auth/verify-username?username=admin@scardua.com.br
+
+###
+
+### Verify username (POST)
+POST {{baseUrl}}/auth/verify-username
+Content-Type: application/json
+
+{
+  "username": "angelo.b"
+}
+
+###
+
+### Logout
+POST {{baseUrl}}/auth/logout
+Authorization: Bearer {{token}}
+
+###
+
+### ─────────────────────────────────────────────────────────────
+### STATUS / HEALTH / PROTECTED / CHECK-CPF
+### ─────────────────────────────────────────────────────────────
+
+### Status
+GET {{baseUrl}}/status
+Authorization: Bearer {{token}}
+
+###
+
+### Health
+GET {{baseUrl}}/health
+Authorization: Bearer {{token}}
+
+###
+
+### Protected
+GET {{baseUrl}}/protected
+Authorization: Bearer {{token}}
+
+###
+
+### Check CPF
+GET {{baseUrl}}/check-cpf?email=15365984706
+Authorization: Bearer {{token}}
+
+###
+
+### ─────────────────────────────────────────────────────────────
+### USUÁRIOS
+### ─────────────────────────────────────────────────────────────
+
+### Listar usuários
+GET {{baseUrl}}/usuarios
+Authorization: Bearer {{token}}
+
+###
+
+### Listar usuários (home)
+GET {{baseUrl}}/usuarios?home=true
+Authorization: Bearer {{token}}
+
+###
+
+### Criar usuário
+POST {{baseUrl}}/usuarios
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "nome": "Novo",
+  "sobrenome": "Usuário",
+  "email": "novo@scardua.com.br",
+  "cpf": "98765432100",
+  "password": "senha123",
+  "role": "user"
+}
+
+###
+
+### Atualizar usuário (PATCH)
+PATCH {{baseUrl}}/usuarios
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "id": "user-uuid",
+  "action": "update",
+  "email": "email@novo.com"
+}
+
+###
+
+### Excluir usuário
+DELETE {{baseUrl}}/usuarios
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "id": "user-uuid"
+}
+
+###
+
+### Permissões de um usuário (GET)
+GET {{baseUrl}}/usuarios/permissions?userId=user-uuid
+Authorization: Bearer {{token}}
+
+###
+
+### Definir permissão de uma página (POST)
+POST {{baseUrl}}/usuarios/permissions
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "userId": "user-uuid",
+  "page": "colaboradores",
+  "canAccess": true,
+  "canEdit": false,
+  "canDelete": false
+}
+
+###
+
+### Atualizar múltiplas permissões
+POST {{baseUrl}}/usuarios/updatepermissions
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "userId": "user-uuid",
+  "permissions": {
+    "colaboradores": { "canAccess": true, "canEdit": true, "canDelete": false },
+    "contratos": { "canAccess": true, "canEdit": false, "canDelete": false }
+  }
+}
+
+###
+
+### Todas as permissões (admin)
+GET {{baseUrl}}/usuarios/all-permissions
+Authorization: Bearer {{token}}
+
+###
+
+### Check permission
+GET {{baseUrl}}/usuarios/checkpermission?page=colaboradores
+Authorization: Bearer {{token}}
+
+###
+
+### ─────────────────────────────────────────────────────────────
+### COLABORADORES
+### ─────────────────────────────────────────────────────────────
+
+### Listar colaboradores
+GET {{baseUrl}}/colaboradores
+Authorization: Bearer {{token}}
+
+###
+
+### Listar por CPF
+GET {{baseUrl}}/colaboradores?cpf=12345678901
+Authorization: Bearer {{token}}
+
+###
+
+### Me (colaborador do usuário logado)
+GET {{baseUrl}}/colaboradores/me
+Authorization: Bearer {{token}}
+
+###
+
+### Buscar por ID
+GET {{baseUrl}}/colaboradores/1
+Authorization: Bearer {{token}}
+
+###
+
+### Foto do colaborador
+GET {{baseUrl}}/colaboradores/1/foto
+Authorization: Bearer {{token}}
+
+###
+
+### Criar colaborador
+POST {{baseUrl}}/colaboradores
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "nome": "João",
+  "sobrenome": "Silva",
+  "cpf": "12345678901",
+  "empresaId": 1,
+  "cargo": "Motorista",
+  "setor": "Logística",
+  "admissao": "2024-01-01"
+}
+
+###
+
+### Atualizar colaborador (PATCH)
+PATCH {{baseUrl}}/colaboradores/1
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "cargo": "Coordenador",
+  "setor": "Administrativo"
+}
+
+###
+
+### Ocultar colaborador (PUT — id no body)
+PUT {{baseUrl}}/colaboradores
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "id": 1
+}
+
+###
+
+### ─────────────────────────────────────────────────────────────
+### EMPRESAS
+### ─────────────────────────────────────────────────────────────
+
+### Listar empresas
+GET {{baseUrl}}/empresas
+Authorization: Bearer {{token}}
+
+###
+
+### Listar empresas (paginado)
+GET {{baseUrl}}/empresas?page=1&limit=20&search=scardua
+Authorization: Bearer {{token}}
+
+###
+
+### List simples
+GET {{baseUrl}}/empresas/list
+Authorization: Bearer {{token}}
+
+###
+
+### Criar empresa
+POST {{baseUrl}}/empresas
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "nomeEmpresa": "Scardua Transportes",
+  "cnpj": "12345678000190",
+  "numero": "001",
+  "cidade": "Vitória"
+}
+
+###
+
+### Atualizar empresa
+PUT {{baseUrl}}/empresas
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "id": 1,
+  "nomeEmpresa": "Scardua Transportes Ltda",
+  "cnpj": "12345678000190"
+}
+
+###
+
+### Excluir empresa
+DELETE {{baseUrl}}/empresas?id=1
+Authorization: Bearer {{token}}
+
+###
+
+### ─────────────────────────────────────────────────────────────
+### ANIVERSARIANTES
+### ─────────────────────────────────────────────────────────────
+
+### Listar aniversariantes
+GET {{baseUrl}}/aniversariantes
+Authorization: Bearer {{token}}
+
+###
+
+### ─────────────────────────────────────────────────────────────
+### BANCO DE HORAS
+### ─────────────────────────────────────────────────────────────
+
+### Listar registros
+GET {{baseUrl}}/banco-horas/registros
+Authorization: Bearer {{token}}
+
+###
+
+### Listar registros por funcionário
+GET {{baseUrl}}/banco-horas/registros?funcionarioId=1&dataInicio=2026-01-01&dataFim=2026-06-30
+Authorization: Bearer {{token}}
+
+###
+
+### Buscar registro por ID
+GET {{baseUrl}}/banco-horas/registros/1
+Authorization: Bearer {{token}}
+
+###
+
+### Criar registro de ponto
+POST {{baseUrl}}/banco-horas/registros
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "colaborador_id": 1,
+  "tipo": "ENTRADA",
+  "acao": "NORMAL"
+}
+
+###
+
+### Atualizar registro (PATCH)
+PATCH {{baseUrl}}/banco-horas/registros/1
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "horas_corrigidas": "08:00",
+  "observacao": "Correção manual"
+}
+
+###
+
+### Marcar termo importado (PATCH /registros/:id com campo termo_importado)
+PATCH {{baseUrl}}/banco-horas/registros/1
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "termo_importado": true
+}
+
+###
+
+### Excluir registro
+DELETE {{baseUrl}}/banco-horas/registros?id=1
+Authorization: Bearer {{token}}
+
+###
+
+### Conta corrente de horas de um funcionário
+GET {{baseUrl}}/banco-horas/conta-corrente?funcionario_id=1
+Authorization: Bearer {{token}}
+
+###
+
+### Horas do usuário (por CPF ou ID)
+GET {{baseUrl}}/banco-horas/usuario/horas?cpf=12345678901
+Authorization: Bearer {{token}}
+
+###
+
+### Estatísticas
+GET {{baseUrl}}/banco-horas/estatisticas?tipo=geral&data_inicio=2026-01-01&data_fim=2026-06-30
+Authorization: Bearer {{token}}
+
+###
+
+### Relatórios de banco de horas
+GET {{baseUrl}}/banco-horas/relatorios?formato=json&funcionario_id=1
+Authorization: Bearer {{token}}
+
+###
+
+### Funcionários (busca)
+GET {{baseUrl}}/banco-horas/funcionarios?search=João
+Authorization: Bearer {{token}}
+
+###
+
+### Sincronizar banco de horas (GET — preview)
+GET {{baseUrl}}/banco-horas/sincronizar
+Authorization: Bearer {{token}}
+
+###
+
+### Sincronizar banco de horas (POST — executar)
+POST {{baseUrl}}/banco-horas/sincronizar
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{}
+
+###
+
+### Exportar
+GET {{baseUrl}}/banco-horas/exportar?formato=csv&tipo=geral
+Authorization: Bearer {{token}}
+
+###
+
+### Exportar relatório
+POST {{baseUrl}}/banco-horas/exportar-relatorio
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "funcionario_id": 1,
+  "data_inicio": "2026-01-01",
+  "data_fim": "2026-06-30"
+}
+
+###
+
+### Gerar termo
+POST {{baseUrl}}/banco-horas/gerar-termo
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "colaboradorId": 1
+}
+
+###
+
+### Gerar termo PDF
+POST {{baseUrl}}/banco-horas/gerar-termo-pdf
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "colaboradorId": 1
+}
+
+###
+
+### Gerar termo de ausência
+POST {{baseUrl}}/banco-horas/gerar-termo-ausencia
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "colaboradorId": 1
+}
+
+###
+
+### Gerar termo de ausência PDF
+POST {{baseUrl}}/banco-horas/gerar-termo-ausencia-pdf
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "colaboradorId": 1
+}
+
+###
+
+### Gerar termos de registros (bulk)
+POST {{baseUrl}}/banco-horas/gerar-termos-registros
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "registroIds": [1, 2, 3]
+}
+
+###
+
+### Baixar termo
+POST {{baseUrl}}/banco-horas/baixar-termo
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "colaboradorId": 1
+}
+
+###
+
+### Debug (banco de horas)
+GET {{baseUrl}}/banco-horas/debug
+Authorization: Bearer {{token}}
+
+###
+
+### ─────────────────────────────────────────────────────────────
+### CONTA CORRENTE
+### ─────────────────────────────────────────────────────────────
+
+### Listar contas do usuário logado
+GET {{baseUrl}}/conta-corrente
+Authorization: Bearer {{token}}
+
+###
+
+### Stats
+GET {{baseUrl}}/conta-corrente/stats
+Authorization: Bearer {{token}}
+
+###
+
+### Todas as contas (admin)
+GET {{baseUrl}}/conta-corrente/todos?showHidden=false
+Authorization: Bearer {{token}}
+
+###
+
+### Contas de um usuário
+GET {{baseUrl}}/conta-corrente/usuario/{{userIdStr}}
+Authorization: Bearer {{token}}
+
+###
+
+### Resumo financeiro de um usuário
+GET {{baseUrl}}/conta-corrente/resumo/{{userIdStr}}
+Authorization: Bearer {{token}}
+
+###
+
+### Criar conta corrente
+POST {{baseUrl}}/conta-corrente
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "colaboradorId": 1,
+  "tipo": "INDIVIDUAL",
+  "empresaId": 1
+}
+
+###
+
+### Criar conta corrente (via /todos)
+POST {{baseUrl}}/conta-corrente/todos
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "colaboradorId": 1,
+  "tipo": "INDIVIDUAL",
+  "empresaId": 1
+}
+
+###
+
+### Atualizar conta corrente (PATCH)
+PATCH {{baseUrl}}/conta-corrente/1
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "observacao": "Atualizado via teste"
+}
+
+###
+
+### Alternar visibilidade (PUT /:id)
+PUT {{baseUrl}}/conta-corrente/1
+Authorization: Bearer {{token}}
+
+###
+
+### Ocultar conta (POST /ocultar)
+POST {{baseUrl}}/conta-corrente/ocultar
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "id": 1
+}
+
+###
+
+### Gerar termo de conta corrente
+POST {{baseUrl}}/conta-corrente/generate-termo
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "userId": "{{userIdStr}}"
+}
+
+###
+
+### Criar lançamento em uma conta
+POST {{baseUrl}}/conta-corrente/1/lancamentos
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "data": "2026-06-15",
+  "numeroDocumento": "NF001",
+  "observacao": "Adiantamento",
+  "credito": "500.00",
+  "debito": null
+}
+
+###
+
+### Atualizar lançamento
+PATCH {{baseUrl}}/conta-corrente/1/lancamentos/5
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "observacao": "Corrigido"
+}
+
+###
+
+### Excluir lançamento
+DELETE {{baseUrl}}/conta-corrente/1/lancamentos/5
+Authorization: Bearer {{token}}
+
+###
+
+### Excluir conta corrente
+DELETE {{baseUrl}}/conta-corrente/1
+Authorization: Bearer {{token}}
+
+###
+
+### ─────────────────────────────────────────────────────────────
+### LANÇAMENTO (bulk)
+### ─────────────────────────────────────────────────────────────
+
+### Criar lançamentos em bulk
+POST {{baseUrl}}/lancamento
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "contaCorrenteId": 1,
+  "clearExisting": false,
+  "lancamentos": [
+    { "data": "2026-06-01", "numeroDocumento": "NF001", "credito": "100.00", "debito": null, "observacao": "Entrada 1" },
+    { "data": "2026-06-10", "numeroDocumento": "NF002", "credito": null, "debito": "50.00", "observacao": "Saída 1" }
+  ]
+}
+
+###
+
+### Excluir todos os lançamentos de uma conta
+DELETE {{baseUrl}}/lancamento?contaCorrenteId=1
+Authorization: Bearer {{token}}
+
+###
+
+### Criar lançamentos para usuário (por colaboradorId)
+POST {{baseUrl}}/lancamento/usuario/1
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "contaCorrenteId": 0,
+  "clearExisting": true,
+  "lancamentos": [
+    { "data": "2026-06-15", "credito": "200.00", "debito": null, "observacao": "Pagamento" }
+  ]
+}
+
+###
+
+### ─────────────────────────────────────────────────────────────
+### CAIXA VIAGEM
+### ─────────────────────────────────────────────────────────────
+
+### Listar caixas (usuário logado)
+GET {{baseUrl}}/caixaviagem
+Authorization: Bearer {{token}}
+
+###
+
+### Estatísticas
+GET {{baseUrl}}/caixaviagem/stats
+Authorization: Bearer {{token}}
+
+###
+
+### Todas as caixas (admin)
+GET {{baseUrl}}/caixaviagem/todos?showHidden=false
+Authorization: Bearer {{token}}
+
+###
+
+### Próximo número e saldo anterior (por funcionário)
+GET {{baseUrl}}/caixaviagem/ultimo-caixa/1
+Authorization: Bearer {{token}}
+
+###
+
+### Caixas de um usuário
+GET {{baseUrl}}/caixaviagem/usuario/1
+Authorization: Bearer {{token}}
+
+###
+
+### Resumo de uma caixa
+GET {{baseUrl}}/caixaviagem/resumo/1
+Authorization: Bearer {{token}}
+
+###
+
+### Criar caixa viagem
+POST {{baseUrl}}/caixaviagem
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "destino": "São Paulo",
+  "data": "2026-06-20",
+  "empresaId": 1,
+  "funcionarioId": 1,
+  "veiculoId": 1,
+  "observacao": "Viagem de teste"
+}
+
+###
+
+### Listar adiantamentos
+GET {{baseUrl}}/caixaviagem/adiantamento?userId={{userIdStr}}
+Authorization: Bearer {{token}}
+
+###
+
+### Criar adiantamento
+POST {{baseUrl}}/caixaviagem/adiantamento
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "data": "2026-06-15",
+  "saida": "300.00",
+  "nome": "Adiantamento viagem SP",
+  "caixaViagemId": 1,
+  "colaboradorId": 1
+}
+
+###
+
+### Atualizar adiantamento
+PUT {{baseUrl}}/caixaviagem/adiantamento
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "adiantamentoId": 1,
+  "caixaViagemId": 1,
+  "nome": "Adiantamento atualizado",
+  "saida": "400.00"
+}
+
+###
+
+### Excluir adiantamento
+DELETE {{baseUrl}}/caixaviagem/adiantamento?id=1
+Authorization: Bearer {{token}}
+
+###
+
+### Ocultar caixa viagem
+POST {{baseUrl}}/caixaviagem/ocultar
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "id": 1
+}
+
+###
+
+### Gerar termo
+POST {{baseUrl}}/caixaviagem/generate-termo
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "caixaId": 1
+}
+
+###
+
+### Recalcular saldos
+POST {{baseUrl}}/caixaviagem/recalcularSaldos
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{}
+
+###
+
+### Excluir caixa
+DELETE {{baseUrl}}/caixaviagem?id=1
+Authorization: Bearer {{token}}
+
+###
+
+### ─────────────────────────────────────────────────────────────
+### LANÇAMENTO VIAGEM (bulk)
+### ─────────────────────────────────────────────────────────────
+
+### Listar lançamentos de viagem
+GET {{baseUrl}}/lancamentoviagem?caixaViagemId=1
+Authorization: Bearer {{token}}
+
+###
+
+### Criar lançamentos de viagem (bulk)
+POST {{baseUrl}}/lancamentoviagem
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "caixaViagemId": 1,
+  "clearExisting": false,
+  "lancamentos": [
+    { "data": "2026-06-20", "custo": "150.00", "clienteFornecedor": "Posto Ipiranga", "saida": "150.00" },
+    { "data": "2026-06-21", "custo": "80.00", "clienteFornecedor": "Restaurante", "saida": "80.00" }
+  ]
+}
+
+###
+
+### Criar lançamento para colaborador (caixa ativo)
+POST {{baseUrl}}/lancamentoviagem/usuario/1
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "caixaViagemId": 0,
+  "lancamentos": [
+    { "data": "2026-06-21", "custo": "100.00", "clienteFornecedor": "Hotel", "saida": "100.00" }
+  ]
+}
+
+###
+
+### ─────────────────────────────────────────────────────────────
+### CONTRATOS
+### ─────────────────────────────────────────────────────────────
+
+### Listar contratos
+GET {{baseUrl}}/contratos
+Authorization: Bearer {{token}}
+
+###
+
+### Buscar contrato por ID
+GET {{baseUrl}}/contratos/1
+Authorization: Bearer {{token}}
+
+###
+
+### Criar contrato
+POST {{baseUrl}}/contratos
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "numero": "CT-2026-001",
+  "titulo": "Contrato de Serviços",
+  "fornecedor": "Fornecedor X",
+  "valor": 50000.00,
+  "data_inicio": "2026-01-01",
+  "data_vencimento": "2026-12-31",
+  "departamento": "Administrativo",
+  "responsavel": "João Silva",
+  "status": "ativo"
+}
+
+###
+
+### Atualizar contrato (PUT)
+PUT {{baseUrl}}/contratos/1
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "titulo": "Contrato Atualizado",
+  "valor": 55000.00
+}
+
+###
+
+### Ação: finalizar contrato
+PATCH {{baseUrl}}/contratos/1
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "action": "finalizar"
+}
+
+###
+
+### Ação: renovar contrato (+30 dias)
+PATCH {{baseUrl}}/contratos/1
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "action": "renovar"
+}
+
+###
+
+### Gerar URL assinada para upload
+POST {{baseUrl}}/contratos/upload-url
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "path": "contratos/arquivo.pdf"
+}
+
+###
+
+### Buscar arquivo de contrato
+POST {{baseUrl}}/contratos/1/arquivos/2
+Authorization: Bearer {{token}}
+
+###
+
+### Excluir arquivo de contrato
+DELETE {{baseUrl}}/contratos/1/arquivos/2
+Authorization: Bearer {{token}}
+
+###
+
+### Excluir contrato (soft delete)
+DELETE {{baseUrl}}/contratos/1
+Authorization: Bearer {{token}}
+
+###
+
+### ─────────────────────────────────────────────────────────────
+### MANUAIS
+### ─────────────────────────────────────────────────────────────
+
+### Listar manuais
+GET {{baseUrl}}/manuais
+Authorization: Bearer {{token}}
+
+###
+
+### Buscar manual por ID
+GET {{baseUrl}}/manuais/1
+Authorization: Bearer {{token}}
+
+###
+
+### Detalhes de manual
+GET {{baseUrl}}/manuais/1/details
+Authorization: Bearer {{token}}
+
+###
+
+### Criar manual
+POST {{baseUrl}}/manuais
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "titulo": "Manual de Procedimentos",
+  "categoria": "Operacional",
+  "descricao": "Procedimentos operacionais da empresa"
+}
+
+###
+
+### Atualizar manual (PUT)
+PUT {{baseUrl}}/manuais/1
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "titulo": "Manual Atualizado"
+}
+
+###
+
+### Excluir manual
+DELETE {{baseUrl}}/manuais/1
+Authorization: Bearer {{token}}
+
+###
+
+### ─────────────────────────────────────────────────────────────
+### PATRIMÔNIOS
+### ─────────────────────────────────────────────────────────────
+
+### Listar patrimônios
+GET {{baseUrl}}/patrimonio
+Authorization: Bearer {{token}}
+
+###
+
+### Listar (home — resumo)
+GET {{baseUrl}}/patrimonio?home=true
+Authorization: Bearer {{token}}
+
+###
+
+### Stats
+GET {{baseUrl}}/patrimonio/stats
+Authorization: Bearer {{token}}
+
+###
+
+### Listar veículos
+GET {{baseUrl}}/patrimonio/veiculos
+Authorization: Bearer {{token}}
+
+###
+
+### Verificar serial
+GET {{baseUrl}}/patrimonio/check-serial?serial=SN-12345
+Authorization: Bearer {{token}}
+
+###
+
+### Criar patrimônio
+POST {{baseUrl}}/patrimonio
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "tipo": "VEICULO",
+  "nome": "Caminhão VW 24.280",
+  "placa": "ABC-1234",
+  "responsavelId": 1,
+  "localizacao": "Filial SP"
+}
+
+###
+
+### Atualizar patrimônio (PATCH)
+PATCH {{baseUrl}}/patrimonio/1
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "localizacao": "Filial RJ",
+  "status": "ativo"
+}
+
+###
+
+### Alternar visibilidade (PUT)
+PUT {{baseUrl}}/patrimonio/1
+Authorization: Bearer {{token}}
+
+###
+
+### Gerar documento de movimentação
+POST {{baseUrl}}/patrimonio/generate-doc
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "patrimonioId": 1,
+  "movimentacaoId": 5
+}
+
+###
+
+### ─────────────────────────────────────────────────────────────
+### MOVIMENTAÇÃO DE PATRIMÔNIO
+### ─────────────────────────────────────────────────────────────
+
+### Listar movimentações
+GET {{baseUrl}}/movimentacao
+Authorization: Bearer {{token}}
+
+###
+
+### Filtrar por patrimônio
+GET {{baseUrl}}/movimentacao?patrimonioId=1&page=1&limit=20
+Authorization: Bearer {{token}}
+
+###
+
+### Criar movimentação
+POST {{baseUrl}}/movimentacao
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "patrimonioId": 1,
+  "tipo": "TRANSFERENCIA",
+  "localizacaoNova": "Filial RJ",
+  "responsavelNovoId": 2,
+  "kmNovo": "125000"
+}
+
+###
+
+### ─────────────────────────────────────────────────────────────
+### EPI
+### ─────────────────────────────────────────────────────────────
+
+### Listar EPIs
+GET {{baseUrl}}/epi/epis
+Authorization: Bearer {{token}}
+
+###
+
+### Buscar EPI por ID
+GET {{baseUrl}}/epi/epis/1
+Authorization: Bearer {{token}}
+
+###
+
+### Criar EPI
+POST {{baseUrl}}/epi/epis
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "codigo": "EPI-001",
+  "nome": "Capacete de Segurança",
+  "ca": "12345",
+  "categoria": "Proteção da Cabeça",
+  "fabricante": "3M",
+  "estoque_inicial": 50
+}
+
+###
+
+### Atualizar EPI
+PUT {{baseUrl}}/epi/epis/1
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "estoque_minimo": 10,
+  "vida_util_dias": 365
+}
+
+###
+
+### Excluir EPI
+DELETE {{baseUrl}}/epi/epis/1
+Authorization: Bearer {{token}}
+
+###
+
+### Dashboard EPI
+GET {{baseUrl}}/epi/dashboard?empresaId=1
+Authorization: Bearer {{token}}
+
+###
+
+### Movimentações de EPI
+GET {{baseUrl}}/epi/movimentacoes?empresaId=1
+Authorization: Bearer {{token}}
+
+###
+
+### Criar movimentação de EPI
+POST {{baseUrl}}/epi/movimentacoes
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "epi_id": 1,
+  "colaborador_id": 1,
+  "tipo": "ENTREGA",
+  "quantidade": 1,
+  "responsavel": "Almoxarifado",
+  "empresaId": 1
+}
+
+###
+
+### Movimentações por colaborador
+GET {{baseUrl}}/epi/movimentacoes/colaborador/1
+Authorization: Bearer {{token}}
+
+###
+
+### Estoque de EPI
+GET {{baseUrl}}/epi/estoque?epi_id=1
+Authorization: Bearer {{token}}
+
+###
+
+### Movimentar estoque (entrada/saída)
+POST {{baseUrl}}/epi/estoque
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "epi_id": 1,
+  "tipo": "ENTRADA",
+  "quantidade": 20,
+  "responsavel": "Compras",
+  "empresaId": 1
+}
+
+###
+
+### Atualizar movimentação de estoque
+PUT {{baseUrl}}/epi/estoque/1
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "quantidade": 25,
+  "responsavel": "Almoxarifado"
+}
+
+###
+
+### Cargos EPI
+GET {{baseUrl}}/epi/cargos
+Authorization: Bearer {{token}}
+
+###
+
+### Criar cargo EPI
+POST {{baseUrl}}/epi/cargos
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "nome": "Motorista",
+  "descricao": "Cargo de motorista"
+}
+
+###
+
+### Cargo-EPI (associação)
+GET {{baseUrl}}/epi/cargo-epi?cargo_id=1
+Authorization: Bearer {{token}}
+
+###
+
+### Associar EPI a cargo
+POST {{baseUrl}}/epi/cargo-epi
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "cargo_id": 1,
+  "epi_id": 1,
+  "periodicidade_troca_dias": 365,
+  "quantidade_padrao": 1,
+  "obrigatorio": true
+}
+
+###
+
+### Transferências EPI
+GET {{baseUrl}}/epi/transferencias
+Authorization: Bearer {{token}}
+
+###
+
+### Criar transferência EPI
+POST {{baseUrl}}/epi/transferencias
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "epiId": 1,
+  "empresaOrigemId": 1,
+  "empresaDestinoId": 2,
+  "quantidade": 5
+}
+
+###
+
+### Saldo por filial EPI
+GET {{baseUrl}}/epi/saldo-filiais?empresaId=1
+Authorization: Bearer {{token}}
+
+###
+
+### Alertas de EPI
+GET {{baseUrl}}/epi/alertas?empresaId=1
+Authorization: Bearer {{token}}
+
+###
+
+### ─────────────────────────────────────────────────────────────
+### ESTOQUE
+### ─────────────────────────────────────────────────────────────
+
+### Listar produtos
+GET {{baseUrl}}/estoque/produtos
+Authorization: Bearer {{token}}
+
+###
+
+### Criar produto
+POST {{baseUrl}}/estoque/produtos
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "codigoInterno": "PROD-001",
+  "nome": "Parafuso M8",
+  "categoria": "Fixadores",
+  "unidade": "PC",
+  "estoqueMinimo": 100
+}
+
+###
+
+### Atualizar produto
+PUT {{baseUrl}}/estoque/produtos/1
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "estoqueMinimo": 150
+}
+
+###
+
+### Dashboard estoque
+GET {{baseUrl}}/estoque/dashboard
+Authorization: Bearer {{token}}
+
+###
+
+### Entradas de estoque
+GET {{baseUrl}}/estoque/entradas?page=1&limit=20
+Authorization: Bearer {{token}}
+
+###
+
+### Criar entrada
+POST {{baseUrl}}/estoque/entradas
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "produtoId": 1,
+  "quantidade": 500,
+  "dataEntrada": "2026-06-15",
+  "numeroNotaFiscal": "NF-2026-001",
+  "empresaId": 1
+}
+
+###
+
+### Saídas de estoque
+GET {{baseUrl}}/estoque/saidas?page=1&limit=20
+Authorization: Bearer {{token}}
+
+###
+
+### Criar saída
+POST {{baseUrl}}/estoque/saidas
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "produtoId": 1,
+  "quantidade": 50,
+  "dataSaida": "2026-06-15",
+  "responsavel": "João",
+  "motivo": "Uso interno",
+  "empresaId": 1
+}
+
+###
+
+### Transferências de estoque
+GET {{baseUrl}}/estoque/transferencias?page=1&limit=20
+Authorization: Bearer {{token}}
+
+###
+
+### Criar transferência
+POST {{baseUrl}}/estoque/transferencias
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "produtoId": 1,
+  "quantidade": 100,
+  "empresaOrigemId": 1,
+  "empresaDestinoId": 2
+}
+
+###
+
+### Saldo por filial
+GET {{baseUrl}}/estoque/saldo-filiais?produtoId=1
+Authorization: Bearer {{token}}
+
+###
+
+### ─────────────────────────────────────────────────────────────
+### GESTOR EMPRESAS
+### ─────────────────────────────────────────────────────────────
+
+### Listar empresas de um gestor
+GET {{baseUrl}}/gestor-empresas?colaboradorId=1
+Authorization: Bearer {{token}}
+
+###
+
+### Atualizar empresas do gestor
+PUT {{baseUrl}}/gestor-empresas
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "colaboradorId": 1,
+  "empresaIds": [1, 2, 3]
+}
+
+###
+
+### ─────────────────────────────────────────────────────────────
+### EVENTOS
+### ─────────────────────────────────────────────────────────────
+
+### Listar eventos
+GET {{baseUrl}}/eventos
+Authorization: Bearer {{token}}
+
+###
+
+### Listar por mês/ano
+GET {{baseUrl}}/eventos?month=6&year=2026
+Authorization: Bearer {{token}}
+
+###
+
+### Criar evento
+POST {{baseUrl}}/eventos
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "tipo": "REUNIAO",
+  "titulo": "Reunião Mensal",
+  "descricao": "Reunião de alinhamento",
+  "dataInicio": "2026-06-20T09:00:00.000Z",
+  "dataFim": "2026-06-20T11:00:00.000Z",
+  "empresaId": 1,
+  "cor": "#3B82F6"
+}
+
+###
+
+### Atualizar datas (PATCH)
+PATCH {{baseUrl}}/eventos/1
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "dataInicio": "2026-06-21T09:00:00.000Z",
+  "dataFim": "2026-06-21T11:00:00.000Z"
+}
+
+###
+
+### Excluir evento
+DELETE {{baseUrl}}/eventos?id=1
+Authorization: Bearer {{token}}
+
+###
+
+### ─────────────────────────────────────────────────────────────
+### ERROS
+### ─────────────────────────────────────────────────────────────
+
+### Listar erros
+GET {{baseUrl}}/erros
+Authorization: Bearer {{token}}
+
+###
+
+### Buscar erro por ID
+GET {{baseUrl}}/erros/1
+Authorization: Bearer {{token}}
+
+###
+
+### Criar erro
+POST {{baseUrl}}/erros
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "titulo": "Erro de conexão Oracle",
+  "categoria": "BANCO_DADOS",
+  "descricao": "Falha ao conectar ao Oracle em produção",
+  "usuario_id": "{{userIdStr}}",
+  "usuario_nome": "Admin"
+}
+
+###
+
+### Atualizar erro (adicionar arquivo)
+PUT {{baseUrl}}/erros/1
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "erro_id": 1,
+  "nome_original": "screenshot.png",
+  "caminho_arquivo": "erros/screenshot.png"
+}
+
+###
+
+### Excluir erro
+DELETE {{baseUrl}}/erros/1
+Authorization: Bearer {{token}}
+
+###
+
+### ─────────────────────────────────────────────────────────────
+### SGQ
+### ─────────────────────────────────────────────────────────────
+
+### Documentos SGQ
+GET {{baseUrl}}/sgq/documents
+Authorization: Bearer {{token}}
+
+###
+
+### Criar documento SGQ
+POST {{baseUrl}}/sgq/documents
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "titulo": "POP-001",
+  "categoria": "PROCEDIMENTO",
+  "status": "RASCUNHO"
+}
+
+###
+
+### Processos SGQ
+GET {{baseUrl}}/sgq/processes
+Authorization: Bearer {{token}}
+
+###
+
+### Não conformidades
+GET {{baseUrl}}/sgq/non-conformities
+Authorization: Bearer {{token}}
+
+###
+
+### Dashboard SGQ
+GET {{baseUrl}}/sgq/dashboard
+Authorization: Bearer {{token}}
+
+###
+
+### Ajuda SGQ
+GET {{baseUrl}}/sgq/help
+Authorization: Bearer {{token}}
+
+###
+
+### Arquivos SGQ
+GET {{baseUrl}}/sgq/files
+Authorization: Bearer {{token}}
+
+###
+
+### ─────────────────────────────────────────────────────────────
+### SUPORTE
+### ─────────────────────────────────────────────────────────────
+
+### Listar tickets
+GET {{baseUrl}}/suporte
+Authorization: Bearer {{token}}
+
+###
+
+### Criar ticket
+POST {{baseUrl}}/suporte
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "ticketId": "TK-2026-001",
+  "tipoEvento": "ABERTURA",
+  "descricao": "Problema com acesso ao sistema",
+  "autorNome": "João Silva",
+  "autorEmail": "joao@scardua.com.br"
+}
+
+###
+
+### Novos comentários
+GET {{baseUrl}}/suporte/comentarios/novos
+Authorization: Bearer {{token}}
+
+###
+
+### Buscar ticket por ID
+GET {{baseUrl}}/suporte/TK-2026-001
+Authorization: Bearer {{token}}
+
+###
+
+### Atualizar ticket
+PUT {{baseUrl}}/suporte/TK-2026-001
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "descricao": "Status atualizado: Em análise"
+}
+
+###
+
+### Excluir ticket
+DELETE {{baseUrl}}/suporte/TK-2026-001
+Authorization: Bearer {{token}}
+
+###
+
+### Comentários de um ticket
+GET {{baseUrl}}/suporte/TK-2026-001/comentarios
+Authorization: Bearer {{token}}
+
+###
+
+### Adicionar comentário
+POST {{baseUrl}}/suporte/TK-2026-001/comentarios
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "ticketId": "TK-2026-001",
+  "tipoEvento": "COMENTARIO_PUBLICO",
+  "descricao": "Estamos investigando o problema",
+  "autorNome": "Suporte Técnico",
+  "autorEmail": "suporte@scardua.com.br"
+}
+
+###
+
+### ─────────────────────────────────────────────────────────────
+### RELATÓRIOS
+### ─────────────────────────────────────────────────────────────
+
+### Listar relatórios
+GET {{baseUrl}}/relatorios
+Authorization: Bearer {{token}}
+
+###
+
+### Criar relatório
+POST {{baseUrl}}/relatorios
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "nome": "Relatório de Vendas",
+  "departamento": "Comercial",
+  "descricao": "Vendas por período",
+  "query_sql": "SELECT * FROM vendas WHERE data >= :dataInicio",
+  "banco_dados": "oracle",
+  "restrito": false
+}
+
+###
+
+### Executar relatório
+POST {{baseUrl}}/relatorios/execute
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "id": 1,
+  "parametros": { "dataInicio": "2026-01-01" }
+}
+
+###
+
+### Buscar relatório por ID
+GET {{baseUrl}}/relatorios/1
+Authorization: Bearer {{token}}
+
+###
+
+### Atualizar relatório
+POST {{baseUrl}}/relatorios/1
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "descricao": "Descrição atualizada"
+}
+
+###
+
+### Atualizar relatório (PATCH)
+PATCH {{baseUrl}}/relatorios/1
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "ativo": true
+}
+
+###
+
+### Excluir relatório (soft delete)
+DELETE {{baseUrl}}/relatorios/1
+Authorization: Bearer {{token}}
+
+###
+
+### Listar permissões de um relatório
+GET {{baseUrl}}/relatorios/1/permissions
+Authorization: Bearer {{token}}
+
+###
+
+### Definir permissões de um relatório
+POST {{baseUrl}}/relatorios/1/permissions
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "userIds": ["user-uuid-1", "user-uuid-2"]
+}
+
+###
+
+### ─────────────────────────────────────────────────────────────
+### NCM
+### ─────────────────────────────────────────────────────────────
+
+### Buscar NCMs
+GET {{baseUrl}}/ncm?termo=8708&categoria=autopecas
+Authorization: Bearer {{token}}
+
+###
+
+### Criar NCM
+POST {{baseUrl}}/ncm
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "codigo_ncm": "8708.29.90",
+  "descricao": "Partes e acessórios",
+  "categoria_cliente": "autopecas"
+}
+
+###
+
+### Buscar NCM por ID
+GET {{baseUrl}}/ncm/1
+Authorization: Bearer {{token}}
+
+###
+
+### Atualizar NCM
+PUT {{baseUrl}}/ncm/1
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "categoria_cliente": "autopecas_sp"
+}
+
+###
+
+### Importar NCMs (bulk)
+POST {{baseUrl}}/ncm/import
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "ncms": [
+    { "codigo_ncm": "8708.29.90", "descricao": "Partes e acessórios" }
+  ]
+}
+
+###
+
+### NCM Check (single)
+POST {{baseUrl}}/ncm-check
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "codigo_ncm": "8708.29.90",
+  "empresa": "SCARDUA",
+  "uf_emissor": "ES",
+  "uf_destino": "SP"
+}
+
+###
+
+### NCM Check Batch
+POST {{baseUrl}}/ncm-check/batch
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "ncms": [
+    { "codigo_ncm": "8708.29.90", "empresa": "SCARDUA" },
+    { "codigo_ncm": "8708.30.00", "empresa": "SCARDUA" }
+  ]
+}
+
+###
+
+### ─────────────────────────────────────────────────────────────
+### IMPORTAÇÃO DE PREÇOS
+### ─────────────────────────────────────────────────────────────
+
+### Importar preços
+POST {{baseUrl}}/importacao-precos/importar
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "produtos": [
+    {
+      "codigoInterno": "PROD-001",
+      "nome": "Parafuso M8",
+      "categoria": "Fixadores",
+      "unidade": "PC",
+      "estoqueMinimo": 100,
+      "estoqueAtual": 500
+    }
+  ]
+}
+
+###
+
+### Marcas disponíveis
+GET {{baseUrl}}/importacao-precos/marcas
+Authorization: Bearer {{token}}
+
+###
+
+### Grupos disponíveis
+GET {{baseUrl}}/importacao-precos/grupos?marca=BOSCH
+Authorization: Bearer {{token}}
+
+###
+
+### Categorias disponíveis
+GET {{baseUrl}}/importacao-precos/categorias?marca=BOSCH&grupo=FILTROS
+Authorization: Bearer {{token}}
+
+###
+
+### Exportar preços
+GET {{baseUrl}}/importacao-precos/exportar?marca=BOSCH
+Authorization: Bearer {{token}}
+
+###
+
+### ─────────────────────────────────────────────────────────────
+### PREÇO DE VENDA
+### ─────────────────────────────────────────────────────────────
+
+### Incluir preço de venda (single)
+POST {{baseUrl}}/preco-venda/incluir
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "produtoId": 1,
+  "precoVenda": 29.99,
+  "observacao": "Preço base 2026"
+}
+
+###
+
+### Importar preços (bulk)
+POST {{baseUrl}}/preco-venda/importar
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "itens": [
+    { "produtoId": 1, "precoVenda": 29.99 },
+    { "produtoId": 2, "precoVenda": 49.90 }
+  ]
+}
+
+###
+
+### Template de importação
+GET {{baseUrl}}/preco-venda/template
+Authorization: Bearer {{token}}
+
+###
+
+### ─────────────────────────────────────────────────────────────
+### TABELA DE PREÇO
+### ─────────────────────────────────────────────────────────────
+
+### Incluir tabela de preços
+POST {{baseUrl}}/tabela-de-preco/incluir
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "empresaId": 1,
+  "empresaNome": "Scardua Transportes",
+  "descricao": "Tabela junho 2026",
+  "itens": [
+    { "produtoCodigo": "PROD-001", "produtoNome": "Parafuso M8", "precoVenda": 0.50, "precoBase": 0.30 }
+  ]
+}
+
+###
+
+### Importar tabela
+POST {{baseUrl}}/tabela-de-preco/importar
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "empresaId": 1,
+  "empresaNome": "Scardua",
+  "itens": [
+    { "produtoCodigo": "PROD-001", "produtoNome": "Parafuso M8", "precoVenda": 0.55 }
+  ]
+}
+
+###
+
+### Atualizar tabela
+POST {{baseUrl}}/tabela-de-preco/atualizar
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "empresaId": 1,
+  "empresaNome": "Scardua",
+  "itens": [
+    { "produtoCodigo": "PROD-001", "produtoNome": "Parafuso M8", "precoVenda": 0.60 }
+  ]
+}
+
+###
+
+### Template
+GET {{baseUrl}}/tabela-de-preco/template
+Authorization: Bearer {{token}}
+
+###
+
+### Histórico de tabela de preços
+GET {{baseUrl}}/tabela-de-preco/historico?empresaId=1
+Authorization: Bearer {{token}}
+
+###
+
+### Limpar histórico
+DELETE {{baseUrl}}/tabela-de-preco/historico
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{}
+
+###
+
+### ─────────────────────────────────────────────────────────────
+### PRECIFICADOR
+### ─────────────────────────────────────────────────────────────
+
+### Buscar produto
+GET {{baseUrl}}/precificador/buscar-produto?q=parafuso&empresa=SCARDUA
+Authorization: Bearer {{token}}
+
+###
+
+### Buscar NCM
+GET {{baseUrl}}/precificador/buscar-ncm?codigo=8708.29.90
+Authorization: Bearer {{token}}
+
+###
+
+### Buscar por fornecedor
+GET {{baseUrl}}/precificador/buscar-fornecedor?codItem=PROD-001&fornecedor=BOSCH&empresa=SCARDUA
+Authorization: Bearer {{token}}
+
+###
+
+### Buscar por NF
+GET {{baseUrl}}/precificador/buscar-nf?nf=NF-001&empresa=SCARDUA
+Authorization: Bearer {{token}}
+
+###
+
+### Histórico de precificações
+GET {{baseUrl}}/precificador/historico?page=1&limit=20
+Authorization: Bearer {{token}}
+
+###
+
+### Salvar precificação
+POST {{baseUrl}}/precificador/salvar
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "userId": "{{userIdStr}}",
+  "empresaId": 1,
+  "empresaNome": "Scardua",
+  "produtoCodigo": "PROD-001",
+  "produtoNome": "Parafuso M8",
+  "tipoPrecoBase": "custo",
+  "custoBase": 0.30,
+  "custosFixosPerc": 15,
+  "outrosCustosVendaPerc": 5,
+  "lucroPercDesejado": 25,
+  "ncmCodigo": "8708.29.90",
+  "vendaFora": false,
+  "precoFinal": 0.50,
+  "lucroLiquido": 0.10,
+  "margemLiquida": 0.20
+}
+
+###
+
+### Atualizar preços
+POST {{baseUrl}}/precificador/atualizar-precos
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "itens": [
+    { "produtoId": 1, "preco": 0.55 }
+  ]
+}
+
+###
+
+### ─────────────────────────────────────────────────────────────
+### ORACLE / BRIDGE
+### ─────────────────────────────────────────────────────────────
+
+### Credenciais Oracle
+GET {{baseUrl}}/oracle-credentials
+Authorization: Bearer {{token}}
+
+###
+
+### Teste Oracle (GET — endpoint info)
+GET {{baseUrl}}/oracle-test
+Authorization: Bearer {{token}}
+
+###
+
+### Teste Oracle (POST — conectar e testar)
+POST {{baseUrl}}/oracle-test
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{}
+
+###
+
+### Oracle Query — Conectar
+POST {{baseUrl}}/oracle-query/connect
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{}
+
+###
+
+### Oracle Query — Desconectar
+POST {{baseUrl}}/oracle-query/disconnect
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{}
+
+###
+
+### Oracle Query — Listar tabelas
+POST {{baseUrl}}/oracle-query/tables
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "datasource": "oracle"
+}
+
+###
+
+### Oracle Query — Descrever tabela
+POST {{baseUrl}}/oracle-query/describe
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "tabela": "PRODUTOS"
+}
+
+###
+
+### Oracle Query — Executar SQL
+POST {{baseUrl}}/oracle-query/execute
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "sql": "SELECT COUNT(*) FROM PRODUTOS",
+  "datasource": "oracle"
+}
+
+###
+
+### Oracle Query — Update
+POST {{baseUrl}}/oracle-query/update
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "sql": "UPDATE PRODUTOS SET STATUS = 'A' WHERE ID = 1"
+}
+
+###
+
+### Bridge — Conectar
+POST {{baseUrl}}/bridge/connect
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{}
+
+###
+
+### Bridge — Executar SQL
+POST {{baseUrl}}/bridge/execute
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "sql": "SELECT * FROM PRODUTOS WHERE ROWNUM <= 10"
+}
+
+###
+
+### Bridge — Listar tabelas
+POST {{baseUrl}}/bridge/tables
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{}
+
+###
+
+### Bridge — Descrever tabela
+POST {{baseUrl}}/bridge/describe
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "tabela": "PRODUTOS"
+}
+
+###
+
+### Reports — Run query
+POST {{baseUrl}}/reports/run-query
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "sql": "SELECT COUNT(*) AS TOTAL FROM PRODUTOS",
+  "datasource": "oracle"
+}
+
+###
+
+### Monitor de registros (GET)
+GET {{baseUrl}}/monitor-registros?tipo=veiculos
+Authorization: Bearer {{token}}
+
+###
+
+### Monitor de registros (POST — atualizar)
+POST {{baseUrl}}/monitor-registros
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "success": true,
+  "rows": [{ "id": 1, "placa": "ABC-1234" }],
+  "data": "2026-06-15T10:00:00Z"
+}
+
+###
+
+### ─────────────────────────────────────────────────────────────
+### NCM UTILITIES / DEBUG / TEST
+### ─────────────────────────────────────────────────────────────
+
+### List NCMs
+GET {{baseUrl}}/list-ncms
+Authorization: Bearer {{token}}
+
+###
+
+### Search NCM
+GET {{baseUrl}}/search-ncm?ncm=8708.29
+Authorization: Bearer {{token}}
+
+###
+
+### Diagnose NCM limit
+GET {{baseUrl}}/diagnose-ncm-limit
+Authorization: Bearer {{token}}
+
+###
+
+### Compare NCM queries
+GET {{baseUrl}}/compare-ncm-queries
+Authorization: Bearer {{token}}
+
+###
+
+### Debug NCM
+POST {{baseUrl}}/debug-ncm
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{}
+
+###
+
+### Debug NCM format
+GET {{baseUrl}}/debug-ncm-format
+Authorization: Bearer {{token}}
+
+###
+
+### Debug usuários
+GET {{baseUrl}}/debug-usuarios
+Authorization: Bearer {{token}}
+
+###
+
+### Debug permissions
+GET {{baseUrl}}/debug/permissions
+Authorization: Bearer {{token}}
+
+###
+
+### Final NCM validation
+GET {{baseUrl}}/final-ncm-validation
+Authorization: Bearer {{token}}
+
+###
+
+### Test 52 NCMs
+GET {{baseUrl}}/test-52-ncms
+Authorization: Bearer {{token}}
+
+###
+
+### Test batch 50
+GET {{baseUrl}}/test-batch-50
+Authorization: Bearer {{token}}
+
+###
+
+### Test batch sizes
+GET {{baseUrl}}/test-batch-sizes
+Authorization: Bearer {{token}}
+
+###
+
+### Test sync horas
+GET {{baseUrl}}/test-sync-horas?cpf=12345678901
+Authorization: Bearer {{token}}
+
+###
+
+### Validar peças NCM (POST)
+POST {{baseUrl}}/validar-pecas-ncm
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "data": [{ "NCM": "8708.29.90", "descricao": "Peça" }]
+}
+
+###
+
+### ─────────────────────────────────────────────────────────────
+### UPLOAD / DOWNLOAD / IMG-PROXY
+### ─────────────────────────────────────────────────────────────
+
+### Upload de imagem
+# POST {{baseUrl}}/upload-image
+# Content-Type: multipart/form-data
+# Authorization: Bearer {{token}}
+# (use um cliente como Postman/Insomnia para multipart)
+
+###
+
+### Download de arquivo
+GET {{baseUrl}}/download/contratos/arquivo.pdf
+Authorization: Bearer {{token}}
+
+###
+
+### Img Proxy
+GET {{baseUrl}}/img-proxy?url=https://supabase.co/storage/v1/object/public/uploads/foto.jpg
+Authorization: Bearer {{token}}
+
+###

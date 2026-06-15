@@ -12,7 +12,7 @@ import {
 import { ApiBearerAuth, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { RequirePermission } from '../../auth/decorators/require-permission.decorator';
 import { PermissionsGuard } from '../../auth/guards/permissions.guard';
-import type { CriarLancamentoViagemDto } from './dto/criar-lancamento-viagem.dto';
+import type { LancamentoViagemBulkDto } from './dto/criar-lancamento-viagem.dto';
 import { LancamentoViagemRepository } from './repositories/lancamento-viagem.repository';
 
 @ApiTags('Lancamento Viagem')
@@ -26,16 +26,16 @@ export class LancamentoViagemController {
   @HttpCode(200)
   @RequirePermission('lancamentoviagem', 'access')
   @ApiOperation({ summary: 'Listar lançamentos de viagem' })
-  @ApiQuery({ name: 'caixaId', required: false, type: Number })
+  @ApiQuery({ name: 'caixaViagemId', required: false, type: Number })
   @ApiQuery({ name: 'tipo', required: false })
   @ApiQuery({ name: 'userId', required: false })
   findAll(
-    @Query('caixaId') caixaId?: string,
+    @Query('caixaViagemId') caixaViagemId?: string,
     @Query('tipo') tipo?: string,
     @Query('userId') userId?: string,
   ) {
     return this.repo.findAll({
-      caixaId: caixaId ? parseInt(caixaId, 10) : undefined,
+      caixaId: caixaViagemId ? parseInt(caixaViagemId, 10) : undefined,
       tipo,
       userId,
     });
@@ -44,9 +44,9 @@ export class LancamentoViagemController {
   @Post()
   @HttpCode(201)
   @RequirePermission('lancamentoviagem', 'edit')
-  @ApiOperation({ summary: 'Criar lançamento de viagem' })
-  create(@Body() dto: CriarLancamentoViagemDto) {
-    return this.repo.create(dto);
+  @ApiOperation({ summary: 'Criar lançamento(s) de viagem — suporta formato bulk com lancamentos[]' })
+  create(@Body() dto: LancamentoViagemBulkDto) {
+    return this.repo.createBulk(dto);
   }
 
   @Get('usuario/:id')
@@ -61,12 +61,12 @@ export class LancamentoViagemController {
   @HttpCode(201)
   @RequirePermission('lancamentoviagem', 'edit')
   @ApiOperation({
-    summary: 'Criar lançamento de viagem para colaborador (caixa ativo)',
+    summary: 'Criar lançamento(s) de viagem para colaborador (caixa ativo)',
   })
   createForColaborador(
     @Param('id', ParseIntPipe) id: number,
-    @Body() dto: Omit<CriarLancamentoViagemDto, 'caixaViagemId'>,
+    @Body() dto: LancamentoViagemBulkDto,
   ) {
-    return this.repo.createForColaborador(id, dto);
+    return this.repo.createBulkForColaborador(id, dto);
   }
 }

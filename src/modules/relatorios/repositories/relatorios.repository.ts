@@ -56,6 +56,19 @@ export class RelatoriosRepository {
     });
   }
 
+  remove(id: number) {
+    return this.prisma.relatorios.update({
+      where: { id },
+      data: { ativo: false, data_modificado: new Date() },
+    });
+  }
+
+  getPermissions(relatorioId: number) {
+    return this.prisma.relatorio_permissions.findMany({
+      where: { relatorio_id: relatorioId },
+    });
+  }
+
   async setPermissions(relatorioId: number, userIds: string[]) {
     await this.prisma.relatorio_permissions.deleteMany({ where: { relatorio_id: relatorioId } });
 

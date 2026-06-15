@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
-import type { CriarLancamentoViagemDto } from '../dto/criar-lancamento-viagem.dto';
+import type { CriarLancamentoViagemDto, LancamentoViagemBulkDto } from '../dto/criar-lancamento-viagem.dto';
 
 @Injectable()
 export class LancamentoViagemRepository {
@@ -28,6 +28,58 @@ export class LancamentoViagemRepository {
       },
       orderBy: { data: 'desc' },
     });
+  }
+
+  async createBulk(dto: LancamentoViagemBulkDto) {
+    if (dto.clearExisting && dto.caixaViagemId) {
+      await this.prisma.viagemlancamento.deleteMany({
+        where: { caixaViagemId: dto.caixaViagemId },
+      });
+    }
+
+    const items = dto.lancamentos?.length
+      ? dto.lancamentos
+      : dto.data && dto.custo && dto.clienteFornecedor
+        ? [{ data: dto.data, custo: dto.custo, clienteFornecedor: dto.clienteFornecedor, entrada: dto.entrada, saida: dto.saida, numeroDocumento: dto.numeroDocumento, historicoDoc: dto.historicoDoc }]
+        : [];
+
+    const criados = await Promise.all(
+      items.map((item) =>
+        this.prisma.viagemlancamento.create({
+          data: {
+            caixaViagemId: dto.caixaViagemId ?? null,
+            data: new Date(item.data),
+            custo: item.custo,
+            clienteFornecedor: item.clienteFornecedor,
+            entrada: item.entrada ?? null,
+            saida: item.saida ?? null,
+            numeroDocumento: item.numeroDocumento ?? null,
+            historicoDoc: item.historicoDoc ?? null,
+            updatedAt: new Date(),
+          },
+        }),
+      ),
+    );
+
+    return {
+      success: true,
+      message: `${criados.length} lançamento(s) criado(s)`,
+      lancamentos: criados,
+    };
+  }
+
+  async createBulkForColaborador(colaboradorId: number, dto: LancamentoViagemBulkDto) {
+    const caixa = await this.prisma.caixaviagem.findFirst({
+      where: { funcionarioId: colaboradorId, oculto: false },
+      orderBy: { data: 'desc' },
+    });
+
+    if (!caixa)
+      throw new NotFoundException(
+        `Caixa viagem ativo para colaborador #${colaboradorId} não encontrado`,
+      );
+
+    return this.createBulk({ ...dto, caixaViagemId: caixa.id });
   }
 
   create(dto: CriarLancamentoViagemDto) {

@@ -3,15 +3,17 @@ import {
   Controller,
   Delete,
   HttpCode,
+  NotFoundException,
   Param,
   ParseIntPipe,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { RequirePermission } from '../../auth/decorators/require-permission.decorator';
 import { PermissionsGuard } from '../../auth/guards/permissions.guard';
-import type { CriarLancamentoDto } from './dto/criar-lancamento.dto';
+import { LancamentoBulkDto } from './dto/criar-lancamento.dto';
 import { LancamentoRepository } from './repositories/lancamento.repository';
 
 @ApiTags('Lancamento')
@@ -24,28 +26,34 @@ export class LancamentoController {
   @Post()
   @HttpCode(201)
   @RequirePermission('lancamento', 'edit')
-  @ApiOperation({ summary: 'Criar lançamento' })
-  create(@Body() dto: CriarLancamentoDto) {
-    return this.repo.create(dto);
+  @ApiOperation({ summary: 'Criar lançamento(s) — suporta formato bulk com lancamentos[]' })
+  create(@Body() dto: LancamentoBulkDto) {
+    return this.repo.createBulk(dto);
   }
 
   @Delete()
-  @HttpCode(204)
+  @HttpCode(200)
   @RequirePermission('lancamento', 'edit')
-  @ApiOperation({ summary: 'Excluir lançamento por id no body' })
-  async remove(@Body() body: { id: number }) {
-    await this.repo.remove(body.id);
+  @ApiOperation({ summary: 'Excluir todos os lançamentos de uma conta corrente' })
+  @ApiQuery({ name: 'contaCorrenteId', required: true, type: String })
+  async remove(@Query('contaCorrenteId') contaCorrenteId: string) {
+    if (!contaCorrenteId)
+      throw new NotFoundException('contaCorrenteId é obrigatório');
+    const result = await this.repo.removeByContaCorrenteId(
+      parseInt(contaCorrenteId, 10),
+    );
+    return { success: true, message: `${result.deleted} lançamento(s) excluído(s)` };
   }
 
   @Post('usuario/:id')
   @HttpCode(201)
   @RequirePermission('lancamento', 'edit')
-  @ApiOperation({ summary: 'Criar lançamento para um usuário (por colaboradorId)' })
+  @ApiOperation({ summary: 'Criar lançamento(s) para um usuário (por colaboradorId)' })
   createForUser(
     @Param('id', ParseIntPipe) id: number,
-    @Body() dto: Omit<CriarLancamentoDto, 'contaCorrenteId'>,
+    @Body() body: LancamentoBulkDto,
   ) {
-    return this.repo.createForUser(id, dto);
+    return this.repo.createBulkForUser(id, body);
   }
 
   @Delete('usuario/:id')

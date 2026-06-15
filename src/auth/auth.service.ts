@@ -19,8 +19,8 @@ export class AuthService {
   ) {}
 
   async login(dto: LoginDto) {
-    const user = await this.prisma.users.findUnique({
-      where: { email: dto.email },
+    const user = await this.prisma.users.findFirst({
+      where: { OR: [{ email: dto.email }, { nome: dto.email }] },
     });
 
     if (!user || !(await bcrypt.compare(dto.password, user.password))) {
