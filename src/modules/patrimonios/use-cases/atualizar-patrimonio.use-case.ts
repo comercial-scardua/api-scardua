@@ -1,11 +1,11 @@
-import { Injectable } from '@nestjs/common';
-import { type Either, left, right } from '../../../core/either';
-import type { AtualizarPatrimonioDto } from '../dto/atualizar-patrimonio.dto';
-import { PrismaService } from '../../../prisma/prisma.service';
-import { PatrimoniosRepository } from '../repositories/patrimonios.repository';
-import { PatrimonioNaoEncontradoError } from './errors/patrimonio-nao-encontrado.error';
+import { Injectable } from '@nestjs/common'
+import { type Either, left, right } from '../../../core/either'
+import { PrismaService } from '../../../prisma/prisma.service'
+import type { AtualizarPatrimonioDto } from '../dto/atualizar-patrimonio.dto'
+import { PatrimoniosRepository } from '../repositories/patrimonios.repository'
+import { PatrimonioNaoEncontradoError } from './errors/patrimonio-nao-encontrado.error'
 
-type AtualizarResult = Either<PatrimonioNaoEncontradoError, { id: number }>;
+type AtualizarResult = Either<PatrimonioNaoEncontradoError, { id: number }>
 
 @Injectable()
 export class AtualizarPatrimonioUseCase {
@@ -22,22 +22,23 @@ export class AtualizarPatrimonioUseCase {
     const colaborador = await this.prisma.colaboradores.findFirst({
       where: { userId },
       select: { id: true },
-    });
-    const autorColaboradorId = colaborador?.id ?? null;
-    const atual = await this.repo.findById(id);
-    if (!atual) return left(new PatrimonioNaoEncontradoError(id));
+    })
+    const autorColaboradorId = colaborador?.id ?? null
+    const atual = await this.repo.findById(id)
+    if (!atual) return left(new PatrimonioNaoEncontradoError(id))
 
-    await this.repo.update(id, dto);
+    await this.repo.update(id, dto)
 
     // Detecta mudanças e cria movimentações automaticamente
     const mudouResponsavel =
-      dto.responsavelId !== undefined && dto.responsavelId !== atual.responsavelId;
+      dto.responsavelId !== undefined &&
+      dto.responsavelId !== atual.responsavelId
     const mudouLocalizacao =
-      dto.localizacao !== undefined && dto.localizacao !== atual.localizacao;
+      dto.localizacao !== undefined && dto.localizacao !== atual.localizacao
     const mudouKm =
       atual.tipo === 'Veículo' &&
       dto.kmEntrega !== undefined &&
-      dto.kmEntrega !== atual.kmEntrega;
+      dto.kmEntrega !== atual.kmEntrega
 
     try {
       if (mudouResponsavel) {
@@ -49,7 +50,7 @@ export class AtualizarPatrimonioUseCase {
           responsavelNovoId: dto.responsavelId ?? null,
           localizacaoAnterior: atual.localizacao,
           localizacaoNova: dto.localizacao ?? atual.localizacao,
-        });
+        })
       }
 
       if (mudouLocalizacao) {
@@ -61,7 +62,7 @@ export class AtualizarPatrimonioUseCase {
           responsavelNovoId: dto.responsavelId ?? atual.responsavelId,
           localizacaoAnterior: atual.localizacao,
           localizacaoNova: dto.localizacao ?? null,
-        });
+        })
       }
 
       if (mudouKm) {
@@ -73,12 +74,12 @@ export class AtualizarPatrimonioUseCase {
           responsavelNovoId: dto.responsavelId ?? atual.responsavelId,
           kmAnterior: atual.kmEntrega,
           kmNovo: dto.kmEntrega ?? null,
-        });
+        })
       }
     } catch {
       // Falha na movimentação não reverte a atualização (igual ao portal)
     }
 
-    return right({ id });
+    return right({ id })
   }
 }

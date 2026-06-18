@@ -13,6 +13,7 @@ export class AuthController {
 
   @Public()
   @Post('login')
+  @HttpCode(200)
   @ApiOperation({ summary: 'Login com email e senha' })
   login(@Body() dto: LoginDto) {
     return this.auth.login(dto);

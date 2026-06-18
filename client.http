@@ -3,8 +3,7 @@
 ### ============================================================
 ### Variáveis globais — ajuste conforme ambiente
 @baseUrl = http://localhost:3001/api
-@token= OiJlMWQ5YjgwOS0yZjUzLTQ0NDQtODQzMC0yZTZmOGMyYmI3OWEiLCJlbWFpbCI6ImFjcmlzaW8iLCJyb2xlIjoiQURNSU4iLCJpYXQiOjE3ODE1NTI0NTEsImV4cCI6MTc4MTYzODg1MX0.dDUcvChbUBx0gWoeh1xfMalEeN660zePJCIPUIYyQGU
-
+@token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJlMWQ5YjgwOS0yZjUzLTQ0NDQtODQzMC0yZTZmOGMyYmI3OWEiLCJlbWFpbCI6ImFjcmlzaW8iLCJyb2xlIjoiQURNSU4iLCJpYXQiOjE3ODE2MDc0NjEsImV4cCI6MTc4MTY5Mzg2MX0.U7WTtX4tPD7yXiop_LswNx8tqj-FZX1EDPUck-__N4o
 @userId = 1
 @userIdStr = e1d9b809-2f53-4444-8430-2e6f8c2bb79a
 
@@ -123,7 +122,7 @@ Authorization: Bearer {{token}}
 ###
 
 ### Check CPF
-GET {{baseUrl}}/check-cpf?email=15365984706
+GET {{baseUrl}}/check-cpf?cpf=15365984706
 Authorization: Bearer {{token}}
 
 ###
@@ -2391,9 +2390,9 @@ Authorization: Bearer {{token}}
 ### ─────────────────────────────────────────────────────────────
 
 ### Upload de imagem
-# POST {{baseUrl}}/upload-image
-# Content-Type: multipart/form-data
-# Authorization: Bearer {{token}}
+POST {{baseUrl}}/upload-image
+Content-Type: multipart/form-data
+Authorization: Bearer {{token}}
 # (use um cliente como Postman/Insomnia para multipart)
 
 ###
