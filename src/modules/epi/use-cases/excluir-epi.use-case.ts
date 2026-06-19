@@ -15,7 +15,8 @@ export class ExcluirEpiUseCase {
       await this.repo.deleteEpi(id)
       return right(undefined)
     } catch (e: any) {
-      if (e.message?.includes('vínculos')) return left(new EpiComVinculosError(id))
+      if (e.message?.includes('vínculos'))
+        return left(new EpiComVinculosError(id))
       return left(new EpiNaoEncontradoError(id))
     }
   }

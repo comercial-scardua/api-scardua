@@ -39,7 +39,8 @@ export class SgqController {
   async listDocuments(
     @Query('status') status?: string,
     @Query('type') type?: string,
-    @Query('processId', new ParseIntPipe({ optional: true })) processId?: number,
+    @Query('processId', new ParseIntPipe({ optional: true }))
+    processId?: number,
     @Query('search') search?: string,
   ) {
     return this.repo.findAllDocumentos({ status, type, processId, search })
@@ -111,7 +112,8 @@ export class SgqController {
   async listNCs(
     @Query('status') status?: string,
     @Query('origin') origin?: string,
-    @Query('processId', new ParseIntPipe({ optional: true })) processId?: number,
+    @Query('processId', new ParseIntPipe({ optional: true }))
+    processId?: number,
   ) {
     return this.repo.findAllNCs({ status, origin, processId })
   }
@@ -137,7 +139,9 @@ export class SgqController {
   @Post('files')
   @HttpCode(200)
   @RequirePermission('sgq', 'edit')
-  @ApiOperation({ summary: 'Operação de arquivo SGQ (não disponível via API direta)' })
+  @ApiOperation({
+    summary: 'Operação de arquivo SGQ (não disponível via API direta)',
+  })
   async uploadFile() {
     return { message: 'Operação de arquivo não disponível via API direta' }
   }
@@ -145,7 +149,9 @@ export class SgqController {
   @Delete('files')
   @HttpCode(200)
   @RequirePermission('sgq', 'edit')
-  @ApiOperation({ summary: 'Deletar arquivo SGQ (não disponível via API direta)' })
+  @ApiOperation({
+    summary: 'Deletar arquivo SGQ (não disponível via API direta)',
+  })
   async deleteFile() {
     return { message: 'Operação de arquivo não disponível via API direta' }
   }

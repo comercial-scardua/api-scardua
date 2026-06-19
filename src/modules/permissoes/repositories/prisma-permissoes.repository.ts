@@ -1,14 +1,14 @@
-import { Injectable } from '@nestjs/common';
-import type { permission } from '@prisma/client';
-import { PrismaService } from '../../../prisma/prisma.service';
-import type { DefinirPermissaoPaginaDto } from '../dto/definir-permissao-pagina.dto';
-import type { DefinirPermissoesDto } from '../dto/definir-permissoes.dto';
-import { PAGINAS } from '../paginas.constant';
+import { Injectable } from '@nestjs/common'
+import type { permission } from '@prisma/client'
+import { PrismaService } from '../../../prisma/prisma.service'
+import type { DefinirPermissaoPaginaDto } from '../dto/definir-permissao-pagina.dto'
+import type { DefinirPermissoesDto } from '../dto/definir-permissoes.dto'
+import { PAGINAS } from '../paginas.constant'
 import type {
   PermissaoPagina,
   PermissoesRepository,
   PermissoesUsuario,
-} from './permissoes.repository';
+} from './permissoes.repository'
 
 @Injectable()
 export class PrismaPermissoesRepository implements PermissoesRepository {
@@ -24,37 +24,43 @@ export class PrismaPermissoesRepository implements PermissoesRepository {
         where: { id: userId },
         select: { permissions_json: true },
       }),
-    ]);
+    ])
 
     // Monta objeto base a partir da tabela permission
-    const permissions: Record<string, PermissaoPagina> = {};
+    const permissions: Record<string, PermissaoPagina> = {}
     for (const perm of permissoes) {
       permissions[perm.page] = {
         canAccess: perm.canAccess,
         canEdit: perm.canEdit,
         canDelete: perm.canDelete,
-      };
+      }
     }
 
     const result: PermissoesUsuario = {
       permissions,
       restritoDepartamentos: [],
       relatoriosRestritoDepartamentos: [],
-    };
+    }
 
     // Mescla permissions_json — sub-permissões e campos especiais
     if (user?.permissions_json) {
       try {
-        const json = JSON.parse(user.permissions_json) as Record<string, unknown>;
+        const json = JSON.parse(user.permissions_json) as Record<
+          string,
+          unknown
+        >
 
         for (const [key, value] of Object.entries(json)) {
-          if (key === 'restritoDepartamentos' || key === 'relatoriosRestritoDepartamentos') {
-            result[key] = value as string[];
+          if (
+            key === 'restritoDepartamentos' ||
+            key === 'relatoriosRestritoDepartamentos'
+          ) {
+            result[key] = value as string[]
           } else if (typeof value === 'object' && value !== null) {
             result.permissions[key] = {
               ...result.permissions[key],
               ...(value as PermissaoPagina),
-            };
+            }
           }
         }
       } catch {
@@ -62,13 +68,13 @@ export class PrismaPermissoesRepository implements PermissoesRepository {
       }
     }
 
-    return result;
+    return result
   }
 
   findOne(userId: string, page: string) {
     return this.prisma.permission.findUnique({
       where: { userId_page: { userId, page } },
-    });
+    })
   }
 
   async upsertBatch(
@@ -78,8 +84,8 @@ export class PrismaPermissoesRepository implements PermissoesRepository {
     const user = await this.prisma.users.findUnique({
       where: { id: userId },
       select: { id: true },
-    });
-    if (!user) return null;
+    })
+    if (!user) return null
 
     // Upsert de cada página na tabela permission
     await this.prisma.$transaction(
@@ -88,27 +94,27 @@ export class PrismaPermissoesRepository implements PermissoesRepository {
           canAccess: false,
           canEdit: false,
           canDelete: false,
-        };
+        }
         return this.prisma.permission.upsert({
           where: { userId_page: { userId, page } },
           create: { userId, page, ...perm },
           update: perm,
-        });
+        })
       }),
-    );
+    )
 
     // Monta objeto completo para salvar no permissions_json
-    const completePermissions: Record<string, unknown> = {};
+    const completePermissions: Record<string, unknown> = {}
     for (const page of PAGINAS) {
       completePermissions[page] = dto.permissions[page] ?? {
         canAccess: false,
         canEdit: false,
         canDelete: false,
-      };
+      }
     }
-    completePermissions.restritoDepartamentos = dto.restritoDepartamentos ?? [];
+    completePermissions.restritoDepartamentos = dto.restritoDepartamentos ?? []
     completePermissions.relatoriosRestritoDepartamentos =
-      dto.relatoriosRestritoDepartamentos ?? [];
+      dto.relatoriosRestritoDepartamentos ?? []
 
     await this.prisma.users.update({
       where: { id: userId },
@@ -116,9 +122,9 @@ export class PrismaPermissoesRepository implements PermissoesRepository {
         permissions_json: JSON.stringify(completePermissions),
         updatedAt: new Date(),
       },
-    });
+    })
 
-    return this.findByUserId(userId);
+    return this.findByUserId(userId)
   }
 
   async upsertPagina(
@@ -129,23 +135,23 @@ export class PrismaPermissoesRepository implements PermissoesRepository {
     const user = await this.prisma.users.findUnique({
       where: { id: userId },
       select: { id: true },
-    });
-    if (!user) return null;
+    })
+    if (!user) return null
 
     return this.prisma.permission.upsert({
       where: { userId_page: { userId, page } },
       create: { userId, page, ...data },
       update: data,
-    });
+    })
   }
 
   async remover(userId: string, page: string): Promise<boolean> {
-    const existe = await this.findOne(userId, page);
-    if (!existe) return false;
+    const existe = await this.findOne(userId, page)
+    if (!existe) return false
 
     await this.prisma.permission.delete({
       where: { userId_page: { userId, page } },
-    });
-    return true;
+    })
+    return true
   }
 }

@@ -12,4 +12,6 @@ export const RegistrarDevolucaoSchema = z.object({
   observacoes: z.string().optional(),
 })
 
-export class RegistrarDevolucaoDto extends createZodDto(RegistrarDevolucaoSchema) {}
+export class RegistrarDevolucaoDto extends createZodDto(
+  RegistrarDevolucaoSchema,
+) {}

@@ -7,4 +7,6 @@ export const AtualizarColaboradorEpiSchema = z.object({
   epiObservacoes: z.string().optional(),
 })
 
-export class AtualizarColaboradorEpiDto extends createZodDto(AtualizarColaboradorEpiSchema) {}
+export class AtualizarColaboradorEpiDto extends createZodDto(
+  AtualizarColaboradorEpiSchema,
+) {}

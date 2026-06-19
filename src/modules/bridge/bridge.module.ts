@@ -1,5 +1,5 @@
-import { Module } from '@nestjs/common';
-import { BridgeController } from './bridge.controller';
+import { Module } from '@nestjs/common'
+import { BridgeController } from './bridge.controller'
 
 @Module({
   controllers: [BridgeController],

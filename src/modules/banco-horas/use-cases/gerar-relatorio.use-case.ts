@@ -1,37 +1,37 @@
-import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../../../prisma/prisma.service';
-import { CalculoHorasUtil } from '../utils/calculo-horas.util';
-import { ObterEstatisticasUseCase } from './obter-estatisticas.use-case';
+import { Injectable } from '@nestjs/common'
+import { PrismaService } from '../../../prisma/prisma.service'
+import { CalculoHorasUtil } from '../utils/calculo-horas.util'
+import { ObterEstatisticasUseCase } from './obter-estatisticas.use-case'
 
 interface RegistroDetalhado {
-  id: number;
-  colaboradorNome: string;
-  tipo: string;
-  data: string;
-  horaInicio?: string | null;
-  horaFim?: string | null;
-  horasCalculadas: string;
-  observacao?: string | null;
+  id: number
+  colaboradorNome: string
+  tipo: string
+  data: string
+  horaInicio?: string | null
+  horaFim?: string | null
+  horasCalculadas: string
+  observacao?: string | null
 }
 
 interface RelatorioHoras {
-  titulo: string;
-  dataGeracao: string;
+  titulo: string
+  dataGeracao: string
   periodo: {
-    inicio: string;
-    fim: string;
-  };
+    inicio: string
+    fim: string
+  }
   resumo: {
-    totalTrabalhado: number;
-    totalAusencias: number;
-    totalDescontado: number;
-    saldoAcumulado: number;
-    totalFuncionarios: number;
-    totalRegistros: number;
-  };
-  contasCorrentes: any[];
-  registros: RegistroDetalhado[];
-  detalhePorColaborador: any[];
+    totalTrabalhado: number
+    totalAusencias: number
+    totalDescontado: number
+    saldoAcumulado: number
+    totalFuncionarios: number
+    totalRegistros: number
+  }
+  contasCorrentes: any[]
+  registros: RegistroDetalhado[]
+  detalhePorColaborador: any[]
 }
 
 @Injectable()
@@ -46,37 +46,37 @@ export class GerarRelatorioUseCase {
     dataFim?: Date,
     colaboradorId?: number,
   ): Promise<RelatorioHoras> {
-    const where: any = {};
+    const where: any = {}
 
     if (dataInicio || dataFim) {
-      where.data = {};
-      if (dataInicio) where.data.gte = dataInicio;
-      if (dataFim) where.data.lte = dataFim;
+      where.data = {}
+      if (dataInicio) where.data.gte = dataInicio
+      if (dataFim) where.data.lte = dataFim
     }
 
     if (colaboradorId) {
-      where.colaborador_id = colaboradorId;
+      where.colaborador_id = colaboradorId
     }
 
     const registros = await this.prisma.registros_banco_horas.findMany({
       where,
       orderBy: [{ data: 'desc' }, { id: 'desc' }],
-    });
+    })
 
     const contas = await this.prisma.conta_corrente_horas.findMany({
       where: colaboradorId ? { colaborador_id: colaboradorId } : {},
-    });
+    })
 
     const colaboradores = await this.prisma.colaboradores.findMany({
       where: colaboradorId ? { id: colaboradorId } : {},
       include: { registrosBancoHoras: true },
-    });
+    })
 
     const estatisticas = await this.obterEstatisticas.execute(
       dataInicio,
       dataFim,
       colaboradorId,
-    );
+    )
 
     const registrosDetalhados: RegistroDetalhado[] = registros.map((reg) => {
       const horas = CalculoHorasUtil.calcularHorasDoRegistro(
@@ -84,7 +84,7 @@ export class GerarRelatorioUseCase {
         reg.hora_fim,
         reg.intervalo_minutos,
         reg.horas_corrigidas ? Number(reg.horas_corrigidas) : undefined,
-      );
+      )
 
       return {
         id: reg.id,
@@ -95,8 +95,8 @@ export class GerarRelatorioUseCase {
         horaFim: reg.hora_fim,
         horasCalculadas: CalculoHorasUtil.formatarHorasDecimal(horas),
         observacao: reg.observacao || undefined,
-      };
-    });
+      }
+    })
 
     const detalhePorColaborador = colaboradores.map((colab) => ({
       id: colab.id,
@@ -104,14 +104,13 @@ export class GerarRelatorioUseCase {
       email: colab.email,
       cargo: colab.cargo,
       totalRegistros: colab.registrosBancoHoras.length,
-    }));
+    }))
 
     return {
       titulo: 'Relatório de Banco de Horas',
       dataGeracao: new Date().toISOString(),
       periodo: {
-        inicio:
-          dataInicio?.toISOString().split('T')[0] || 'sem-filtro',
+        inicio: dataInicio?.toISOString().split('T')[0] || 'sem-filtro',
         fim: dataFim?.toISOString().split('T')[0] || 'sem-filtro',
       },
       resumo: {
@@ -125,6 +124,6 @@ export class GerarRelatorioUseCase {
       contasCorrentes: contas,
       registros: registrosDetalhados,
       detalhePorColaborador,
-    };
+    }
   }
 }

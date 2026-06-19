@@ -15,7 +15,8 @@ export class ExcluirCargoEpiUseCase {
       await this.repo.deleteCargo(id)
       return right(undefined)
     } catch (e: any) {
-      if (e.message?.includes('EPIs obrigatórios')) return left(new CargoComEpisError(id))
+      if (e.message?.includes('EPIs obrigatórios'))
+        return left(new CargoComEpisError(id))
       return left(new CargoNaoEncontradoError(id))
     }
   }

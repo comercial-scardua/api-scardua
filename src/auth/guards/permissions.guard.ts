@@ -3,28 +3,28 @@ import {
   type ExecutionContext,
   ForbiddenException,
   Injectable,
-} from '@nestjs/common';
-import { Reflector } from '@nestjs/core';
-import { PrismaService } from '../../prisma/prisma.service';
+} from '@nestjs/common'
+import { Reflector } from '@nestjs/core'
+import { PrismaService } from '../../prisma/prisma.service'
 import {
   PERMISSION_KEY,
   type RequiredPermission,
-} from '../decorators/require-permission.decorator';
-import type { JwtPayload } from '../types/jwt-payload.type';
+} from '../decorators/require-permission.decorator'
+import type { JwtPayload } from '../types/jwt-payload.type'
 
 const cache = new Map<
   string,
   {
     data: Array<{
-      page: string;
-      canAccess: boolean;
-      canEdit: boolean;
-      canDelete: boolean;
-    }>;
-    expiresAt: number;
+      page: string
+      canAccess: boolean
+      canEdit: boolean
+      canDelete: boolean
+    }>
+    expiresAt: number
   }
->();
-const TTL_MS = 5 * 60 * 1000;
+>()
+const TTL_MS = 5 * 60 * 1000
 
 @Injectable()
 export class PermissionsGuard implements CanActivate {
@@ -37,20 +37,20 @@ export class PermissionsGuard implements CanActivate {
     const required = this.reflector.getAllAndOverride<RequiredPermission>(
       PERMISSION_KEY,
       [context.getHandler(), context.getClass()],
-    );
+    )
 
-    if (!required) return true;
+    if (!required) return true
 
-    const user = context.switchToHttp().getRequest<{ user: JwtPayload }>().user;
-    if (!user?.userId) return false;
+    const user = context.switchToHttp().getRequest<{ user: JwtPayload }>().user
+    if (!user?.userId) return false
 
-    if (user.role === 'ADMIN') return true;
+    if (user.role === 'ADMIN') return true
 
-    const permissions = await this.loadPermissions(user.userId);
-    const perm = permissions.find((p) => p.page === required.page);
+    const permissions = await this.loadPermissions(user.userId)
+    const perm = permissions.find((p) => p.page === required.page)
 
     if (!perm)
-      throw new ForbiddenException(`Sem acesso à página "${required.page}"`);
+      throw new ForbiddenException(`Sem acesso à página "${required.page}"`)
 
     const allowed =
       required.action === 'access'
@@ -59,30 +59,30 @@ export class PermissionsGuard implements CanActivate {
           ? perm.canEdit
           : required.action === 'delete'
             ? perm.canDelete
-            : false;
+            : false
 
     if (!allowed)
       throw new ForbiddenException(
         `Sem permissão de "${required.action}" em "${required.page}"`,
-      );
+      )
 
-    return true;
+    return true
   }
 
   private async loadPermissions(userId: string) {
-    const cached = cache.get(userId);
-    if (cached && cached.expiresAt > Date.now()) return cached.data;
+    const cached = cache.get(userId)
+    if (cached && cached.expiresAt > Date.now()) return cached.data
 
     const data = await this.prisma.permission.findMany({
       where: { userId },
       select: { page: true, canAccess: true, canEdit: true, canDelete: true },
-    });
+    })
 
-    cache.set(userId, { data, expiresAt: Date.now() + TTL_MS });
-    return data;
+    cache.set(userId, { data, expiresAt: Date.now() + TTL_MS })
+    return data
   }
 
   static invalidate(userId: string) {
-    cache.delete(userId);
+    cache.delete(userId)
   }
 }

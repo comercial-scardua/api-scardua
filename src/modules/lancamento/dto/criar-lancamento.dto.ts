@@ -1,5 +1,5 @@
-import { createZodDto } from 'nestjs-zod';
-import { z } from 'zod';
+import { createZodDto } from 'nestjs-zod'
+import { z } from 'zod'
 
 export const LancamentoItemSchema = z.object({
   data: z.string().min(1),
@@ -7,7 +7,7 @@ export const LancamentoItemSchema = z.object({
   observacao: z.string().optional().default(''),
   credito: z.string().optional().nullable(),
   debito: z.string().optional().nullable(),
-});
+})
 
 export const CriarLancamentoSchema = z.object({
   contaCorrenteId: z.number().int().positive(),
@@ -16,7 +16,7 @@ export const CriarLancamentoSchema = z.object({
   observacao: z.string().default(''),
   credito: z.string().optional().nullable(),
   debito: z.string().optional().nullable(),
-});
+})
 
 export class CriarLancamentoDto extends createZodDto(CriarLancamentoSchema) {}
 
@@ -30,6 +30,6 @@ export const LancamentoBulkSchema = z.object({
   observacao: z.string().optional().default(''),
   credito: z.string().optional().nullable(),
   debito: z.string().optional().nullable(),
-});
+})
 
 export class LancamentoBulkDto extends createZodDto(LancamentoBulkSchema) {}

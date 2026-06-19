@@ -1,5 +1,5 @@
 export class RegistroNaoEncontradoError extends Error {
   constructor(id: number) {
-    super(`Registro de ponto #${id} não encontrado`);
+    super(`Registro de ponto #${id} não encontrado`)
   }
 }

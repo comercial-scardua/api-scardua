@@ -1,5 +1,5 @@
-import { createZodDto } from 'nestjs-zod';
-import { z } from 'zod';
+import { createZodDto } from 'nestjs-zod'
+import { z } from 'zod'
 
 export const CriarTransferenciaSchema = z
   .object({
@@ -14,6 +14,8 @@ export const CriarTransferenciaSchema = z
   .refine((d) => d.empresaOrigemId !== d.empresaDestinoId, {
     message: 'Empresa de origem e destino devem ser diferentes',
     path: ['empresaDestinoId'],
-  });
+  })
 
-export class CriarTransferenciaDto extends createZodDto(CriarTransferenciaSchema) {}
+export class CriarTransferenciaDto extends createZodDto(
+  CriarTransferenciaSchema,
+) {}

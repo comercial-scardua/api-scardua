@@ -8,18 +8,18 @@ import {
   Param,
   Put,
   UseGuards,
-} from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { RequirePermission } from '../../auth/decorators/require-permission.decorator';
-import { PermissionsGuard } from '../../auth/guards/permissions.guard';
-import type { DefinirPermissaoPaginaDto } from './dto/definir-permissao-pagina.dto';
-import type { DefinirPermissoesDto } from './dto/definir-permissoes.dto';
-import { PAGINAS } from './paginas.constant';
-import { DefinirPermissaoPaginaUseCase } from './use-cases/definir-permissao-pagina.use-case';
-import { DefinirPermissoesUseCase } from './use-cases/definir-permissoes.use-case';
-import { UsuarioNaoEncontradoError } from './use-cases/errors/usuario-nao-encontrado.error';
-import { ListarPermissoesUseCase } from './use-cases/listar-permissoes.use-case';
-import { RemoverPermissaoUseCase } from './use-cases/remover-permissao.use-case';
+} from '@nestjs/common'
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger'
+import { RequirePermission } from '../../auth/decorators/require-permission.decorator'
+import { PermissionsGuard } from '../../auth/guards/permissions.guard'
+import type { DefinirPermissaoPaginaDto } from './dto/definir-permissao-pagina.dto'
+import type { DefinirPermissoesDto } from './dto/definir-permissoes.dto'
+import { PAGINAS } from './paginas.constant'
+import { DefinirPermissaoPaginaUseCase } from './use-cases/definir-permissao-pagina.use-case'
+import { DefinirPermissoesUseCase } from './use-cases/definir-permissoes.use-case'
+import { UsuarioNaoEncontradoError } from './use-cases/errors/usuario-nao-encontrado.error'
+import { ListarPermissoesUseCase } from './use-cases/listar-permissoes.use-case'
+import { RemoverPermissaoUseCase } from './use-cases/remover-permissao.use-case'
 
 @ApiTags('Permissões')
 @ApiBearerAuth()
@@ -37,17 +37,18 @@ export class PermissoesController {
   @HttpCode(200)
   @ApiOperation({ summary: 'Listar todas as páginas disponíveis no sistema' })
   listarPaginas() {
-    return { paginas: PAGINAS };
+    return { paginas: PAGINAS }
   }
 
   @Get(':userId')
   @HttpCode(200)
   @RequirePermission('permissoes', 'access')
   @ApiOperation({
-    summary: 'Buscar permissões de um usuário (tabela + permissions_json mesclados)',
+    summary:
+      'Buscar permissões de um usuário (tabela + permissions_json mesclados)',
   })
   findAll(@Param('userId') userId: string) {
-    return this.listar.execute(userId);
+    return this.listar.execute(userId)
   }
 
   @Put(':userId')
@@ -61,20 +62,20 @@ export class PermissoesController {
     @Param('userId') userId: string,
     @Body() dto: DefinirPermissoesDto,
   ) {
-    const result = await this.definir.execute(userId, dto);
+    const result = await this.definir.execute(userId, dto)
 
     if (result.isLeft()) {
-      const error = result.value;
+      const error = result.value
 
       switch (error.constructor) {
         case UsuarioNaoEncontradoError:
-          throw new NotFoundException(error.message);
+          throw new NotFoundException(error.message)
         default:
-          throw new NotFoundException(error.message);
+          throw new NotFoundException(error.message)
       }
     }
 
-    return result.value.permissions;
+    return result.value.permissions
   }
 
   @Put(':userId/:page')
@@ -86,13 +87,13 @@ export class PermissoesController {
     @Param('page') page: string,
     @Body() dto: DefinirPermissaoPaginaDto,
   ) {
-    const result = await this.definirPagina.execute(userId, page, dto);
+    const result = await this.definirPagina.execute(userId, page, dto)
 
     if (result.isLeft()) {
-      throw new NotFoundException(result.value.message);
+      throw new NotFoundException(result.value.message)
     }
 
-    return result.value.permissao;
+    return result.value.permissao
   }
 
   @Delete(':userId/:page')
@@ -103,10 +104,10 @@ export class PermissoesController {
     @Param('userId') userId: string,
     @Param('page') page: string,
   ) {
-    const result = await this.remover.execute(userId, page);
+    const result = await this.remover.execute(userId, page)
 
     if (result.isLeft()) {
-      throw new NotFoundException(result.value.message);
+      throw new NotFoundException(result.value.message)
     }
   }
 }

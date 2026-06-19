@@ -12,26 +12,21 @@ import {
   Post,
   Query,
   UseGuards,
-} from '@nestjs/common';
-import {
-  ApiBearerAuth,
-  ApiOperation,
-  ApiQuery,
-  ApiTags,
-} from '@nestjs/swagger';
-import { CurrentUser } from '../../auth/decorators/current-user.decorator';
-import { RequirePermission } from '../../auth/decorators/require-permission.decorator';
-import { PermissionsGuard } from '../../auth/guards/permissions.guard';
-import type { JwtPayload } from '../../auth/types/jwt-payload.type';
-import type { AtualizarNcmDto } from './dto/atualizar-ncm.dto';
-import type { CriarNcmDto } from './dto/criar-ncm.dto';
-import { AtualizarNcmUseCase } from './use-cases/atualizar-ncm.use-case';
-import { BuscarNcmUseCase } from './use-cases/buscar-ncm.use-case';
-import { CriarNcmUseCase } from './use-cases/criar-ncm.use-case';
-import { DesativarNcmUseCase } from './use-cases/desativar-ncm.use-case';
-import { NcmDuplicadoError } from './use-cases/errors/ncm-duplicado.error';
-import { ImportarNcmUseCase } from './use-cases/importar-ncm.use-case';
-import { ListarNcmUseCase } from './use-cases/listar-ncm.use-case';
+} from '@nestjs/common'
+import { ApiBearerAuth, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger'
+import { CurrentUser } from '../../auth/decorators/current-user.decorator'
+import { RequirePermission } from '../../auth/decorators/require-permission.decorator'
+import { PermissionsGuard } from '../../auth/guards/permissions.guard'
+import type { JwtPayload } from '../../auth/types/jwt-payload.type'
+import type { AtualizarNcmDto } from './dto/atualizar-ncm.dto'
+import type { CriarNcmDto } from './dto/criar-ncm.dto'
+import { AtualizarNcmUseCase } from './use-cases/atualizar-ncm.use-case'
+import { BuscarNcmUseCase } from './use-cases/buscar-ncm.use-case'
+import { CriarNcmUseCase } from './use-cases/criar-ncm.use-case'
+import { DesativarNcmUseCase } from './use-cases/desativar-ncm.use-case'
+import { NcmDuplicadoError } from './use-cases/errors/ncm-duplicado.error'
+import { ImportarNcmUseCase } from './use-cases/importar-ncm.use-case'
+import { ListarNcmUseCase } from './use-cases/listar-ncm.use-case'
 
 @ApiTags('NCM')
 @ApiBearerAuth()
@@ -63,7 +58,13 @@ export class NcmController {
     @Query('uf_emissor') uf_emissor?: string,
     @Query('uf_destino') uf_destino?: string,
   ) {
-    return this.listar.execute({ termo, categoria, empresa, uf_emissor, uf_destino });
+    return this.listar.execute({
+      termo,
+      categoria,
+      empresa,
+      uf_emissor,
+      uf_destino,
+    })
   }
 
   @Get(':id')
@@ -71,9 +72,9 @@ export class NcmController {
   @RequirePermission('ncm', 'access')
   @ApiOperation({ summary: 'Buscar NCM por ID' })
   async findOne(@Param('id', ParseIntPipe) id: number) {
-    const result = await this.buscar.execute(id);
-    if (result.isLeft()) throw new NotFoundException(result.value.message);
-    return result.value.ncm;
+    const result = await this.buscar.execute(id)
+    if (result.isLeft()) throw new NotFoundException(result.value.message)
+    return result.value.ncm
   }
 
   @Post()
@@ -81,19 +82,19 @@ export class NcmController {
   @RequirePermission('ncm', 'edit')
   @ApiOperation({ summary: 'Criar NCM' })
   async create(@Body() dto: CriarNcmDto, @CurrentUser() user: JwtPayload) {
-    const result = await this.criar.execute(dto, user.email);
+    const result = await this.criar.execute(dto, user.email)
 
     if (result.isLeft()) {
-      const error = result.value;
+      const error = result.value
       switch (error.constructor) {
         case NcmDuplicadoError:
-          throw new ConflictException(error.message);
+          throw new ConflictException(error.message)
         default:
-          throw new ConflictException(error.message);
+          throw new ConflictException(error.message)
       }
     }
 
-    return result.value.ncm;
+    return result.value.ncm
   }
 
   @Post('import')
@@ -104,8 +105,8 @@ export class NcmController {
     @Body() body: { itens: CriarNcmDto[] },
     @CurrentUser() user: JwtPayload,
   ) {
-    const result = await this.importar.execute(body.itens, user.email);
-    return result.value;
+    const result = await this.importar.execute(body.itens, user.email)
+    return result.value
   }
 
   @Patch(':id')
@@ -116,9 +117,9 @@ export class NcmController {
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: AtualizarNcmDto,
   ) {
-    const result = await this.atualizar.execute(id, dto);
-    if (result.isLeft()) throw new NotFoundException(result.value.message);
-    return result.value.ncm;
+    const result = await this.atualizar.execute(id, dto)
+    if (result.isLeft()) throw new NotFoundException(result.value.message)
+    return result.value.ncm
   }
 
   @Delete(':id')
@@ -126,7 +127,7 @@ export class NcmController {
   @RequirePermission('ncm', 'edit')
   @ApiOperation({ summary: 'Desativar NCM (soft delete)' })
   async remove(@Param('id', ParseIntPipe) id: number) {
-    const result = await this.desativar.execute(id);
-    if (result.isLeft()) throw new NotFoundException(result.value.message);
+    const result = await this.desativar.execute(id)
+    if (result.isLeft()) throw new NotFoundException(result.value.message)
   }
 }

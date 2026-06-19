@@ -6,19 +6,19 @@ import {
   Post,
   Query,
   UseGuards,
-} from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
-import { RequirePermission } from '../../auth/decorators/require-permission.decorator';
-import { PermissionsGuard } from '../../auth/guards/permissions.guard';
-import { PrismaService } from '../../prisma/prisma.service';
+} from '@nestjs/common'
+import { ApiBearerAuth, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger'
+import { RequirePermission } from '../../auth/decorators/require-permission.decorator'
+import { PermissionsGuard } from '../../auth/guards/permissions.guard'
+import { PrismaService } from '../../prisma/prisma.service'
 
 interface UpsertMonitorDto {
-  colaboradorId: number;
-  tipo: string;
-  data: string;
-  horaEntrada?: string;
-  horaSaida?: string;
-  observacao?: string;
+  colaboradorId: number
+  tipo: string
+  data: string
+  horaEntrada?: string
+  horaSaida?: string
+  observacao?: string
 }
 
 @ApiTags('Monitor Registros')
@@ -46,25 +46,25 @@ export class MonitorRegistrosController {
     @Query('page') page?: string,
     @Query('limit') limit?: string,
   ) {
-    const pageNum = page ? parseInt(page, 10) : 1;
-    const limitNum = limit ? parseInt(limit, 10) : 50;
-    const skip = (pageNum - 1) * limitNum;
+    const pageNum = page ? parseInt(page, 10) : 1
+    const limitNum = limit ? parseInt(limit, 10) : 50
+    const skip = (pageNum - 1) * limitNum
 
-    const where: Record<string, unknown> = {};
+    const where: Record<string, unknown> = {}
 
     if (colaboradorId) {
-      where['colaborador_id'] = parseInt(colaboradorId, 10);
+      where['colaborador_id'] = parseInt(colaboradorId, 10)
     }
 
     if (tipo) {
-      where['tipo'] = tipo;
+      where['tipo'] = tipo
     }
 
     if (dataInicio || dataFim) {
-      const dataFilter: Record<string, Date> = {};
-      if (dataInicio) dataFilter['gte'] = new Date(dataInicio);
-      if (dataFim) dataFilter['lte'] = new Date(dataFim);
-      where['data'] = dataFilter;
+      const dataFilter: Record<string, Date> = {}
+      if (dataInicio) dataFilter['gte'] = new Date(dataInicio)
+      if (dataFim) dataFilter['lte'] = new Date(dataFim)
+      where['data'] = dataFilter
     }
 
     const [registros, total] = await Promise.all([
@@ -80,14 +80,14 @@ export class MonitorRegistrosController {
         take: limitNum,
       }),
       this.prisma.registros_banco_horas.count({ where }),
-    ]);
+    ])
 
     // Estatísticas básicas por tipo
     const tipoStats = await this.prisma.registros_banco_horas.groupBy({
       by: ['tipo'],
       where,
       _count: { id: true },
-    });
+    })
 
     return {
       data: registros,
@@ -101,7 +101,7 @@ export class MonitorRegistrosController {
         total,
         tipos: tipoStats.map((t) => ({ tipo: t.tipo, count: t._count.id })),
       },
-    };
+    }
   }
 
   @Post()
@@ -112,13 +112,13 @@ export class MonitorRegistrosController {
     const colaborador = await this.prisma.colaboradores.findUnique({
       where: { id: dto.colaboradorId },
       select: { id: true, nome: true, sobrenome: true },
-    });
+    })
 
     const funcionarioNome = colaborador
       ? `${colaborador.nome ?? ''} ${colaborador.sobrenome ?? ''}`.trim()
-      : `Colaborador #${dto.colaboradorId}`;
+      : `Colaborador #${dto.colaboradorId}`
 
-    const dataRegistro = new Date(dto.data);
+    const dataRegistro = new Date(dto.data)
 
     // Upsert: se já existe registro do mesmo colaborador/tipo/data, atualiza
     const existing = await this.prisma.registros_banco_horas.findFirst({
@@ -127,7 +127,7 @@ export class MonitorRegistrosController {
         tipo: dto.tipo,
         data: dataRegistro,
       },
-    });
+    })
 
     if (existing) {
       return this.prisma.registros_banco_horas.update({
@@ -138,7 +138,7 @@ export class MonitorRegistrosController {
           observacao: dto.observacao ?? existing.observacao,
           data_modificado: new Date(),
         },
-      });
+      })
     }
 
     return this.prisma.registros_banco_horas.create({
@@ -152,6 +152,6 @@ export class MonitorRegistrosController {
         observacao: dto.observacao ?? null,
         data_modificado: new Date(),
       },
-    });
+    })
   }
 }

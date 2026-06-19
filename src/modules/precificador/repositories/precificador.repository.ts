@@ -1,6 +1,9 @@
-import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../../../prisma/prisma.service';
-import type { SalvarPrecificacaoDto, AtualizarPrecosDto } from '../dto/salvar-precificacao.dto';
+import { Injectable } from '@nestjs/common'
+import { PrismaService } from '../../../prisma/prisma.service'
+import type {
+  SalvarPrecificacaoDto,
+  AtualizarPrecosDto,
+} from '../dto/salvar-precificacao.dto'
 
 @Injectable()
 export class PrecificadorRepository {
@@ -14,7 +17,7 @@ export class PrecificadorRepository {
         where: { codigoInterno: { contains: codigo } },
         take: 50,
         orderBy: { nome: 'asc' },
-      });
+      })
     }
     if (q) {
       return this.prisma.products.findMany({
@@ -27,15 +30,15 @@ export class PrecificadorRepository {
         },
         take: 50,
         orderBy: { nome: 'asc' },
-      });
+      })
     }
-    return this.prisma.products.findMany({ take: 50, orderBy: { nome: 'asc' } });
+    return this.prisma.products.findMany({ take: 50, orderBy: { nome: 'asc' } })
   }
 
   // ── Busca por NCM ────────────────────────────────────────────────────────────
 
   async buscarNcm(ncm?: string) {
-    if (!ncm) return [];
+    if (!ncm) return []
     const registros = await this.prisma.ncm.findMany({
       where: {
         codigo_ncm: { contains: ncm },
@@ -43,59 +46,57 @@ export class PrecificadorRepository {
       },
       take: 50,
       orderBy: { codigo_ncm: 'asc' },
-    });
-    return registros;
+    })
+    return registros
   }
 
   // ── Busca por Fornecedor (histórico de precificações) ────────────────────────
 
   async buscarFornecedor(fornecedor?: string) {
-    if (!fornecedor) return [];
+    if (!fornecedor) return []
     // O modelo products não possui campo fornecedor; buscamos no histórico por empresaNome
     return this.prisma.precificador_historico.findMany({
       where: { empresaNome: { contains: fornecedor } },
       distinct: ['produtoCodigo'],
       take: 50,
       orderBy: { createdAt: 'desc' },
-    });
+    })
   }
 
   // ── Busca de Nota Fiscal (stock_entries) ─────────────────────────────────────
 
   async buscarNf(nf?: string, fornecedor?: string) {
-    if (!nf && !fornecedor) return [];
+    if (!nf && !fornecedor) return []
     return this.prisma.stock_entries.findMany({
       where: {
         ...(nf ? { numeroNotaFiscal: { contains: nf } } : {}),
       },
       take: 50,
       orderBy: { dataEntrada: 'desc' },
-    });
+    })
   }
 
   // ── Busca de NF de Importação ────────────────────────────────────────────────
 
   async buscarNfImportacao(nf?: string) {
-    if (!nf) return [];
+    if (!nf) return []
     return this.prisma.stock_entries.findMany({
       where: { numeroNotaFiscal: { contains: nf } },
       take: 50,
       orderBy: { dataEntrada: 'desc' },
-    });
+    })
   }
 
   // ── Histórico de Precificações ───────────────────────────────────────────────
 
   async historico(produtoId?: number, page = 1, limit = 20) {
-    const skip = (page - 1) * limit;
+    const skip = (page - 1) * limit
 
     const where = produtoId
       ? {
-          OR: [
-            { produtoCodigo: String(produtoId) },
-          ],
+          OR: [{ produtoCodigo: String(produtoId) }],
         }
-      : {};
+      : {}
 
     const [total, dados] = await Promise.all([
       this.prisma.precificador_historico.count({ where }),
@@ -104,9 +105,13 @@ export class PrecificadorRepository {
         orderBy: { createdAt: 'desc' },
         skip,
         take: limit,
-        include: { user: { select: { id: true, nome: true, sobrenome: true, email: true } } },
+        include: {
+          user: {
+            select: { id: true, nome: true, sobrenome: true, email: true },
+          },
+        },
       }),
-    ]);
+    ])
 
     return {
       total,
@@ -114,7 +119,7 @@ export class PrecificadorRepository {
       limit,
       pages: Math.ceil(total / limit),
       dados,
-    };
+    }
   }
 
   // ── Salvar Precificação ──────────────────────────────────────────────────────
@@ -142,34 +147,57 @@ export class PrecificadorRepository {
         margemLiquida: dto.margemLiquida,
       },
       include: { user: { select: { id: true, nome: true, sobrenome: true } } },
-    });
+    })
   }
 
   // ── Atualizar Preços ─────────────────────────────────────────────────────────
 
   async atualizarPrecos(dto: AtualizarPrecosDto) {
-    const resultados: { produtoId: number; status: string; preco?: number; erro?: string }[] = [];
+    const resultados: {
+      produtoId: number
+      status: string
+      preco?: number
+      erro?: string
+    }[] = []
 
     for (const item of dto.itens) {
-      const produto = await this.prisma.products.findUnique({ where: { id: item.produtoId } });
+      const produto = await this.prisma.products.findUnique({
+        where: { id: item.produtoId },
+      })
       if (!produto) {
-        resultados.push({ produtoId: item.produtoId, status: 'erro', erro: 'Produto não encontrado' });
-        continue;
+        resultados.push({
+          produtoId: item.produtoId,
+          status: 'erro',
+          erro: 'Produto não encontrado',
+        })
+        continue
       }
 
       const descricaoAtualizada = JSON.stringify({
-        ...(produto.descricao ? (() => { try { return JSON.parse(produto.descricao); } catch { return { texto: produto.descricao }; } })() : {}),
+        ...(produto.descricao
+          ? (() => {
+              try {
+                return JSON.parse(produto.descricao)
+              } catch {
+                return { texto: produto.descricao }
+              }
+            })()
+          : {}),
         precoVenda: item.preco,
-      });
+      })
 
       await this.prisma.products.update({
         where: { id: item.produtoId },
         data: { descricao: descricaoAtualizada, updatedAt: new Date() },
-      });
+      })
 
-      resultados.push({ produtoId: item.produtoId, status: 'atualizado', preco: item.preco });
+      resultados.push({
+        produtoId: item.produtoId,
+        status: 'atualizado',
+        preco: item.preco,
+      })
     }
 
-    return { total: dto.itens.length, resultados };
+    return { total: dto.itens.length, resultados }
   }
 }

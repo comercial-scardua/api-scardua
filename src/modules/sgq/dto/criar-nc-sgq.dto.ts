@@ -5,7 +5,13 @@ export const CriarNcSgqSchema = z.object({
   code: z.string().min(1),
   title: z.string().min(1),
   description: z.string().min(1),
-  origin: z.enum(['INTERNAL', 'EXTERNAL', 'AUDIT', 'CUSTOMER_COMPLAINT', 'INTERNAL_AUDIT']),
+  origin: z.enum([
+    'INTERNAL',
+    'EXTERNAL',
+    'AUDIT',
+    'CUSTOMER_COMPLAINT',
+    'INTERNAL_AUDIT',
+  ]),
   processId: z.number().int().optional(),
   processName: z.string().optional(),
   ownerId: z.string().min(1),
@@ -13,7 +19,9 @@ export const CriarNcSgqSchema = z.object({
   openingDate: z.coerce.date().optional(),
   deadline: z.coerce.date().optional(),
   closureDate: z.coerce.date().optional(),
-  status: z.enum(['OPEN', 'ANALYSIS', 'ACTION', 'VERIFICATION', 'CLOSED']).optional(),
+  status: z
+    .enum(['OPEN', 'ANALYSIS', 'ACTION', 'VERIFICATION', 'CLOSED'])
+    .optional(),
   rootCauseAnalysis: z.string().optional(),
   immediateAction: z.string().optional(),
   evidenceFiles: z.string().optional(),

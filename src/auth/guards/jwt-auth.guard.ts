@@ -3,11 +3,11 @@ import {
   type ExecutionContext,
   Injectable,
   UnauthorizedException,
-} from '@nestjs/common';
-import { Reflector } from '@nestjs/core';
-import { JwtService } from '@nestjs/jwt';
-import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
-import type { JwtPayload } from '../types/jwt-payload.type';
+} from '@nestjs/common'
+import { Reflector } from '@nestjs/core'
+import { JwtService } from '@nestjs/jwt'
+import { IS_PUBLIC_KEY } from '../decorators/public.decorator'
+import type { JwtPayload } from '../types/jwt-payload.type'
 
 @Injectable()
 export class JwtAuthGuard implements CanActivate {
@@ -20,26 +20,26 @@ export class JwtAuthGuard implements CanActivate {
     const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
       context.getHandler(),
       context.getClass(),
-    ]);
+    ])
 
-    if (isPublic) return true;
+    if (isPublic) return true
 
-    const request = context.switchToHttp().getRequest<Record<string, any>>();
-    const token = this.extractToken(request);
+    const request = context.switchToHttp().getRequest<Record<string, any>>()
+    const token = this.extractToken(request)
 
-    if (!token) throw new UnauthorizedException('Token não fornecido');
+    if (!token) throw new UnauthorizedException('Token não fornecido')
 
     try {
-      request.user = this.jwt.verify<JwtPayload>(token);
-      return true;
+      request.user = this.jwt.verify<JwtPayload>(token)
+      return true
     } catch {
-      throw new UnauthorizedException('Token inválido ou expirado');
+      throw new UnauthorizedException('Token inválido ou expirado')
     }
   }
 
   private extractToken(request: Record<string, any>): string | null {
-    const auth: string = request.headers?.authorization ?? '';
-    const [type, token] = auth.split(' ');
-    return type === 'Bearer' && token ? token : null;
+    const auth: string = request.headers?.authorization ?? ''
+    const [type, token] = auth.split(' ')
+    return type === 'Bearer' && token ? token : null
   }
 }

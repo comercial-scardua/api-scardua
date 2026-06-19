@@ -1,5 +1,5 @@
-import { Global, Module } from '@nestjs/common';
-import { OracleBridgeService } from './oracle-bridge.service';
+import { Global, Module } from '@nestjs/common'
+import { OracleBridgeService } from './oracle-bridge.service'
 
 @Global()
 @Module({

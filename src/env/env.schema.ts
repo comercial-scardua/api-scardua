@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from 'zod'
 
 export const envSchema = z.object({
   DATABASE_URL: z.string().url(),
@@ -9,7 +9,9 @@ export const envSchema = z.object({
   SUPABASE_SERVICE_ROLE_KEY: z.string().optional(),
   PORT: z.coerce.number().default(3001),
   FRONTEND_URL: z.string().default('http://localhost:3000'),
-  NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
-});
+  NODE_ENV: z
+    .enum(['development', 'production', 'test'])
+    .default('development'),
+})
 
-export type Env = z.infer<typeof envSchema>;
+export type Env = z.infer<typeof envSchema>

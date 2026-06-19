@@ -1,5 +1,5 @@
-import { Module } from '@nestjs/common';
-import { ProtectedController } from './protected.controller';
+import { Module } from '@nestjs/common'
+import { ProtectedController } from './protected.controller'
 
 @Module({
   controllers: [ProtectedController],

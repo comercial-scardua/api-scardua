@@ -26,6 +26,6 @@ export const PAGINAS = [
   'epi',
   'precificador',
   'simulacao-financeira',
-] as const;
+] as const
 
-export type Pagina = (typeof PAGINAS)[number];
+export type Pagina = (typeof PAGINAS)[number]

@@ -1,6 +1,6 @@
-import { Module } from '@nestjs/common';
-import { LancamentoViagemController } from './lancamento-viagem.controller';
-import { LancamentoViagemRepository } from './repositories/lancamento-viagem.repository';
+import { Module } from '@nestjs/common'
+import { LancamentoViagemController } from './lancamento-viagem.controller'
+import { LancamentoViagemRepository } from './repositories/lancamento-viagem.repository'
 
 @Module({
   controllers: [LancamentoViagemController],

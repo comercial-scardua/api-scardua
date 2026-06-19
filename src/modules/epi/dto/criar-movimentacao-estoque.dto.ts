@@ -11,4 +11,6 @@ export const CriarMovimentacaoEstoqueSchema = z.object({
   empresaId: z.number().int().positive().optional(),
 })
 
-export class CriarMovimentacaoEstoqueDto extends createZodDto(CriarMovimentacaoEstoqueSchema) {}
+export class CriarMovimentacaoEstoqueDto extends createZodDto(
+  CriarMovimentacaoEstoqueSchema,
+) {}

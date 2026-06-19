@@ -6,13 +6,19 @@ import { EpiRepository } from '../repositories/epi.repository'
 import { EstoqueInsuficienteError } from './errors/estoque-insuficiente.error'
 import { MovimentacaoNaoEncontradaError } from './errors/movimentacao-nao-encontrada.error'
 
-type Result = Either<MovimentacaoNaoEncontradaError | EstoqueInsuficienteError, { movimentacao: epi_estoque_movimentacoes }>
+type Result = Either<
+  MovimentacaoNaoEncontradaError | EstoqueInsuficienteError,
+  { movimentacao: epi_estoque_movimentacoes }
+>
 
 @Injectable()
 export class AtualizarEstoqueMovimentacaoUseCase {
   constructor(private repo: EpiRepository) {}
 
-  async execute(id: number, dto: Partial<CriarMovimentacaoEstoqueDto>): Promise<Result> {
+  async execute(
+    id: number,
+    dto: Partial<CriarMovimentacaoEstoqueDto>,
+  ): Promise<Result> {
     try {
       const movimentacao = await this.repo.updateEstoqueMovimentacao(id, dto)
       return right({ movimentacao })

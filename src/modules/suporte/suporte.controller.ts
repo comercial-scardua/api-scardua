@@ -26,7 +26,9 @@ export class SuporteController {
   @Get()
   @HttpCode(200)
   @RequirePermission('suporte', 'access')
-  @ApiOperation({ summary: 'Listar histórico de tickets agrupado por ticketId' })
+  @ApiOperation({
+    summary: 'Listar histórico de tickets agrupado por ticketId',
+  })
   async listTickets() {
     return this.repo.findAllTickets()
   }
@@ -63,7 +65,10 @@ export class SuporteController {
   @HttpCode(200)
   @RequirePermission('suporte', 'edit')
   @ApiOperation({ summary: 'Atualizar último evento de um ticket' })
-  async updateTicket(@Param('id') id: string, @Body() body: Record<string, unknown>) {
+  async updateTicket(
+    @Param('id') id: string,
+    @Body() body: Record<string, unknown>,
+  ) {
     return this.repo.updateTicket(id, body)
   }
 
@@ -88,7 +93,10 @@ export class SuporteController {
   @HttpCode(201)
   @RequirePermission('suporte', 'edit')
   @ApiOperation({ summary: 'Adicionar comentário a um ticket' })
-  async addComentario(@Param('id') id: string, @Body() dto: CriarTicketSuporteDto) {
+  async addComentario(
+    @Param('id') id: string,
+    @Body() dto: CriarTicketSuporteDto,
+  ) {
     return this.repo.createComentario(id, dto)
   }
 }

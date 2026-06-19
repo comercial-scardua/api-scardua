@@ -1,5 +1,5 @@
-import { createZodDto } from 'nestjs-zod';
-import { z } from 'zod';
+import { createZodDto } from 'nestjs-zod'
+import { z } from 'zod'
 
 export const CriarNcmSchema = z.object({
   codigo_ncm: z.string().min(1),
@@ -21,6 +21,6 @@ export const CriarNcmSchema = z.object({
   mva: z.number().default(0),
   aliquota: z.number().default(0),
   obs_fonte: z.string().optional(),
-});
+})
 
 export class CriarNcmDto extends createZodDto(CriarNcmSchema) {}

@@ -41,7 +41,10 @@ export type CargoComCount = epi_cargos & {
 }
 
 export type CargoEpiLink = epi_cargo_obrigatorio & {
-  epi: Pick<epis, 'id' | 'nome' | 'ca' | 'categoria' | 'estoque_atual' | 'status'>
+  epi: Pick<
+    epis,
+    'id' | 'nome' | 'ca' | 'categoria' | 'estoque_atual' | 'status'
+  >
 }
 
 export type ColaboradorEpi = {
@@ -83,7 +86,12 @@ export type SaldoFiliaisResult = {
     estoqueMinimo: number
     estoqueAtual: number
   }[]
-  empresas: { id: number; nomeEmpresa: string; numero: string | null; cidade: string | null }[]
+  empresas: {
+    id: number
+    nomeEmpresa: string
+    numero: string | null
+    cidade: string | null
+  }[]
   saldos: Record<number, Record<number, number>>
 }
 
@@ -117,7 +125,12 @@ export abstract class EpiRepository {
   abstract findColaboradorIdByUserId(userId: string): Promise<number | null>
 
   // ── EPIs ──────────────────────────────────────────────────────────────────
-  abstract findAllEpis(filters?: { categoria?: string; status?: string; search?: string; baixo_estoque?: boolean }): Promise<epis[]>
+  abstract findAllEpis(filters?: {
+    categoria?: string
+    status?: string
+    search?: string
+    baixo_estoque?: boolean
+  }): Promise<epis[]>
   abstract findEpiById(id: number): Promise<EpiDetalhe | null>
   abstract createEpi(data: CriarEpiDto, empresaId?: number): Promise<epis>
   abstract updateEpi(id: number, data: AtualizarEpiDto): Promise<epis>
@@ -125,24 +138,46 @@ export abstract class EpiRepository {
 
   // ── Cargos ────────────────────────────────────────────────────────────────
   abstract findAllCargos(): Promise<CargoComCount[]>
-  abstract findCargoById(id: number): Promise<(epi_cargos & { epis_obrigatorios: CargoEpiLink[] }) | null>
+  abstract findCargoById(
+    id: number,
+  ): Promise<(epi_cargos & { epis_obrigatorios: CargoEpiLink[] }) | null>
   abstract createCargo(data: CriarCargoEpiDto): Promise<epi_cargos>
-  abstract updateCargo(id: number, data: AtualizarCargoEpiDto): Promise<epi_cargos>
+  abstract updateCargo(
+    id: number,
+    data: AtualizarCargoEpiDto,
+  ): Promise<epi_cargos>
   abstract deleteCargo(id: number): Promise<void>
 
   // ── Cargo-EPI links ───────────────────────────────────────────────────────
   abstract findCargoEpiLinks(cargo_id?: number): Promise<CargoEpiLink[]>
-  abstract createCargoEpiLink(data: AdicionarEpiCargoDto & { cargo_id: number }): Promise<CargoEpiLink>
+  abstract createCargoEpiLink(
+    data: AdicionarEpiCargoDto & { cargo_id: number },
+  ): Promise<CargoEpiLink>
   abstract deleteCargoEpiLink(id: number): Promise<void>
 
   // ── Colaboradores ─────────────────────────────────────────────────────────
-  abstract findColaboradores(filters?: { empresaId?: number; status?: string }, gestorColaboradorId?: number): Promise<ColaboradorEpi[]>
-  abstract updateColaboradorEpi(id: number, data: AtualizarColaboradorEpiDto): Promise<ColaboradorEpi>
+  abstract findColaboradores(
+    filters?: { empresaId?: number; status?: string },
+    gestorColaboradorId?: number,
+  ): Promise<ColaboradorEpi[]>
+  abstract updateColaboradorEpi(
+    id: number,
+    data: AtualizarColaboradorEpiDto,
+  ): Promise<ColaboradorEpi>
 
   // ── Movimentações ─────────────────────────────────────────────────────────
-  abstract findMovimentacoes(filters?: { colaborador_id?: number; epi_id?: number; tipo?: string; empresaId?: number }): Promise<MovimentacaoEpiDetalhe[]>
-  abstract findMovimentacoesByColaborador(colaboradorId: number): Promise<MovimentacaoEpiDetalhe[]>
-  abstract createMovimentacao(data: CriarMovimentacaoEpiDto): Promise<epi_movimentacoes>
+  abstract findMovimentacoes(filters?: {
+    colaborador_id?: number
+    epi_id?: number
+    tipo?: string
+    empresaId?: number
+  }): Promise<MovimentacaoEpiDetalhe[]>
+  abstract findMovimentacoesByColaborador(
+    colaboradorId: number,
+  ): Promise<MovimentacaoEpiDetalhe[]>
+  abstract createMovimentacao(
+    data: CriarMovimentacaoEpiDto,
+  ): Promise<epi_movimentacoes>
   abstract createMovimentacaoHistorica(data: {
     colaborador_id: number
     epi_id: number
@@ -156,22 +191,49 @@ export abstract class EpiRepository {
   }): Promise<epi_movimentacoes>
 
   // ── Estoque ───────────────────────────────────────────────────────────────
-  abstract findEstoque(filters?: { epi_id?: number; empresaId?: number }): Promise<EstoqueResumo>
-  abstract createEstoqueMovimentacao(data: CriarMovimentacaoEstoqueDto): Promise<epi_estoque_movimentacoes>
-  abstract updateEstoqueMovimentacao(id: number, data: Partial<CriarMovimentacaoEstoqueDto>): Promise<epi_estoque_movimentacoes>
+  abstract findEstoque(filters?: {
+    epi_id?: number
+    empresaId?: number
+  }): Promise<EstoqueResumo>
+  abstract createEstoqueMovimentacao(
+    data: CriarMovimentacaoEstoqueDto,
+  ): Promise<epi_estoque_movimentacoes>
+  abstract updateEstoqueMovimentacao(
+    id: number,
+    data: Partial<CriarMovimentacaoEstoqueDto>,
+  ): Promise<epi_estoque_movimentacoes>
   abstract deleteEstoqueMovimentacao(id: number): Promise<void>
 
   // ── Saldo filiais ─────────────────────────────────────────────────────────
   abstract findSaldoFiliais(empresaId?: number): Promise<SaldoFiliaisResult>
 
   // ── Misc ──────────────────────────────────────────────────────────────────
-  abstract findEmpresas(): Promise<{ id: number; nomeEmpresa: string; cnpj: string | null; cidade: string | null }[]>
+  abstract findEmpresas(): Promise<
+    {
+      id: number
+      nomeEmpresa: string
+      cnpj: string | null
+      cidade: string | null
+    }[]
+  >
   abstract findResponsaveis(): Promise<{ id: string; nome: string }[]>
   abstract findDashboard(empresaId?: number): Promise<DashboardData>
   abstract findAlertas(empresaId?: number): Promise<AlertasData>
 
   // ── Transferências ────────────────────────────────────────────────────────
-  abstract findTransferencias(filters?: { page?: number; limit?: number; dataInicio?: string; dataFim?: string }): Promise<{ data: TransferenciaComDetalhes[]; total: number; pages: number; page: number }>
-  abstract createTransferencia(data: CriarTransferenciaEpiDto): Promise<TransferenciaComDetalhes>
+  abstract findTransferencias(filters?: {
+    page?: number
+    limit?: number
+    dataInicio?: string
+    dataFim?: string
+  }): Promise<{
+    data: TransferenciaComDetalhes[]
+    total: number
+    pages: number
+    page: number
+  }>
+  abstract createTransferencia(
+    data: CriarTransferenciaEpiDto,
+  ): Promise<TransferenciaComDetalhes>
   abstract deleteTransferencia(id: number): Promise<void>
 }

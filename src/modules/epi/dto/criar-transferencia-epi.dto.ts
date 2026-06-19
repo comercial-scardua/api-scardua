@@ -16,4 +16,6 @@ export const CriarTransferenciaEpiSchema = z
     path: ['empresaDestinoId'],
   })
 
-export class CriarTransferenciaEpiDto extends createZodDto(CriarTransferenciaEpiSchema) {}
+export class CriarTransferenciaEpiDto extends createZodDto(
+  CriarTransferenciaEpiSchema,
+) {}

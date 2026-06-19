@@ -5,7 +5,10 @@ import type { TransferenciaComDetalhes } from '../repositories/epi.repository'
 import { EpiRepository } from '../repositories/epi.repository'
 import { EstoqueInsuficienteError } from './errors/estoque-insuficiente.error'
 
-type Result = Either<EstoqueInsuficienteError, { transferencia: TransferenciaComDetalhes }>
+type Result = Either<
+  EstoqueInsuficienteError,
+  { transferencia: TransferenciaComDetalhes }
+>
 
 @Injectable()
 export class CriarTransferenciaEpiUseCase {

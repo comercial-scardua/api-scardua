@@ -11,12 +11,15 @@ type Result = Either<VinculoJaExisteError, { link: CargoEpiLink }>
 export class CriarCargoEpiLinkUseCase {
   constructor(private repo: EpiRepository) {}
 
-  async execute(dto: AdicionarEpiCargoDto & { cargo_id: number }): Promise<Result> {
+  async execute(
+    dto: AdicionarEpiCargoDto & { cargo_id: number },
+  ): Promise<Result> {
     try {
       const link = await this.repo.createCargoEpiLink(dto)
       return right({ link })
     } catch (e: any) {
-      if (e.message?.includes('já existe')) return left(new VinculoJaExisteError())
+      if (e.message?.includes('já existe'))
+        return left(new VinculoJaExisteError())
       throw e
     }
   }

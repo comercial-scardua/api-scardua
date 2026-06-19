@@ -6,12 +6,12 @@ import {
   Put,
   Query,
   UseGuards,
-} from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
-import { RequirePermission } from '../../auth/decorators/require-permission.decorator';
-import { PermissionsGuard } from '../../auth/guards/permissions.guard';
-import type { CriarGestorEmpresaDto } from './dto/criar-gestor-empresa.dto';
-import { GestorEmpresasRepository } from './repositories/gestor-empresas.repository';
+} from '@nestjs/common'
+import { ApiBearerAuth, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger'
+import { RequirePermission } from '../../auth/decorators/require-permission.decorator'
+import { PermissionsGuard } from '../../auth/guards/permissions.guard'
+import type { CriarGestorEmpresaDto } from './dto/criar-gestor-empresa.dto'
+import { GestorEmpresasRepository } from './repositories/gestor-empresas.repository'
 
 @ApiTags('Gestor Empresas')
 @ApiBearerAuth()
@@ -33,7 +33,7 @@ export class GestorEmpresasController {
     return this.repo.findAll({
       empresaId: empresaId ? parseInt(empresaId, 10) : undefined,
       colaboradorId: colaboradorId ? parseInt(colaboradorId, 10) : undefined,
-    });
+    })
   }
 
   @Put()
@@ -41,6 +41,6 @@ export class GestorEmpresasController {
   @RequirePermission('gestor-empresas', 'edit')
   @ApiOperation({ summary: 'Upsert gestor de empresa' })
   upsert(@Body() dto: CriarGestorEmpresaDto) {
-    return this.repo.upsert(dto);
+    return this.repo.upsert(dto)
   }
 }

@@ -1,10 +1,19 @@
-import { BadRequestException, Body, ConflictException, Controller, Get, HttpCode, Post, Query } from '@nestjs/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
-import { AuthService } from './auth.service';
-import { CurrentUser } from './decorators/current-user.decorator';
-import { Public } from './decorators/public.decorator';
-import type { LoginDto } from './dto/login.dto';
-import { ResetPasswordDto } from './dto/reset-password.dto';
+import {
+  BadRequestException,
+  Body,
+  ConflictException,
+  Controller,
+  Get,
+  HttpCode,
+  Post,
+  Query,
+} from '@nestjs/common'
+import { ApiOperation, ApiTags } from '@nestjs/swagger'
+import { AuthService } from './auth.service'
+import { CurrentUser } from './decorators/current-user.decorator'
+import { Public } from './decorators/public.decorator'
+import type { LoginDto } from './dto/login.dto'
+import { ResetPasswordDto } from './dto/reset-password.dto'
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -16,7 +25,7 @@ export class AuthController {
   @HttpCode(200)
   @ApiOperation({ summary: 'Login com email e senha' })
   login(@Body() dto: LoginDto) {
-    return this.auth.login(dto);
+    return this.auth.login(dto)
   }
 
   @Public()
@@ -24,13 +33,19 @@ export class AuthController {
   @HttpCode(201)
   @ApiOperation({ summary: 'Registrar novo usuário' })
   async register(
-    @Body() dto: { nome: string; sobrenome: string; email: string; cpf: string; password: string },
+    @Body() dto: {
+      nome: string
+      sobrenome: string
+      email: string
+      cpf: string
+      password: string
+    },
   ) {
     try {
-      return await this.auth.register(dto);
+      return await this.auth.register(dto)
     } catch (e: any) {
-      if (e instanceof ConflictException) throw e;
-      throw e;
+      if (e instanceof ConflictException) throw e
+      throw e
     }
   }
 
@@ -39,19 +54,19 @@ export class AuthController {
   @HttpCode(200)
   @ApiOperation({ summary: 'Logout (cliente deve descartar o token)' })
   logout() {
-    return this.auth.logout();
+    return this.auth.logout()
   }
 
   @Post('refresh-token')
   @ApiOperation({ summary: 'Renovar token JWT' })
   refreshToken(@CurrentUser('userId') userId: string) {
-    return this.auth.refreshToken(userId);
+    return this.auth.refreshToken(userId)
   }
 
   @Post('refresh-permissions')
   @ApiOperation({ summary: 'Renovar token com dados atualizados do usuário' })
   refreshPermissions(@CurrentUser('userId') userId: string) {
-    return this.auth.refreshPermissions(userId);
+    return this.auth.refreshPermissions(userId)
   }
 
   @Post('verify-password')
@@ -60,15 +75,15 @@ export class AuthController {
     @CurrentUser('userId') userId: string,
     @Body('password') password: string,
   ) {
-    return this.auth.verifyPassword(userId, password);
+    return this.auth.verifyPassword(userId, password)
   }
 
   @Public()
   @Get('reset-password')
   @ApiOperation({ summary: 'Verificar token de reset de senha' })
   checkResetPassword(@Query('token') token: string) {
-    if (!token) throw new BadRequestException('Parâmetro "token" é obrigatório');
-    return { valid: !!token, token };
+    if (!token) throw new BadRequestException('Parâmetro "token" é obrigatório')
+    return { valid: !!token, token }
   }
 
   @Public()
@@ -76,15 +91,16 @@ export class AuthController {
   @HttpCode(200)
   @ApiOperation({ summary: 'Redefinir senha (requer senha atual)' })
   resetPassword(@Body() dto: ResetPasswordDto) {
-    return this.auth.resetPassword(dto);
+    return this.auth.resetPassword(dto)
   }
 
   @Public()
   @Get('verify-username')
   @ApiOperation({ summary: 'Verificar se nome/email de usuário existe' })
   verifyUsername(@Query('username') username: string) {
-    if (!username) throw new BadRequestException('Parâmetro "username" é obrigatório');
-    return this.auth.verifyUsername(username);
+    if (!username)
+      throw new BadRequestException('Parâmetro "username" é obrigatório')
+    return this.auth.verifyUsername(username)
   }
 
   @Public()
@@ -92,7 +108,8 @@ export class AuthController {
   @HttpCode(200)
   @ApiOperation({ summary: 'Verificar se nome/email de usuário existe (POST)' })
   verifyUsernamePost(@Body('username') username: string) {
-    if (!username) throw new BadRequestException('Parâmetro "username" é obrigatório');
-    return this.auth.verifyUsername(username);
+    if (!username)
+      throw new BadRequestException('Parâmetro "username" é obrigatório')
+    return this.auth.verifyUsername(username)
   }
 }

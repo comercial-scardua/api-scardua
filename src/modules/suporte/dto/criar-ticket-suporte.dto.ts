@@ -20,4 +20,6 @@ export const CriarTicketSuporteSchema = z.object({
   autorEmail: z.string().email().optional(),
 })
 
-export class CriarTicketSuporteDto extends createZodDto(CriarTicketSuporteSchema) {}
+export class CriarTicketSuporteDto extends createZodDto(
+  CriarTicketSuporteSchema,
+) {}

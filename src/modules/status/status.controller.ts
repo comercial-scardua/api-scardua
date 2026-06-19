@@ -1,6 +1,6 @@
-import { Controller, Get, HttpCode } from '@nestjs/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
-import { Public } from '../../auth/decorators/public.decorator';
+import { Controller, Get, HttpCode } from '@nestjs/common'
+import { ApiOperation, ApiTags } from '@nestjs/swagger'
+import { Public } from '../../auth/decorators/public.decorator'
 
 @ApiTags('Status')
 @Controller('status')
@@ -14,6 +14,6 @@ export class StatusController {
       status: 'ok',
       timestamp: new Date().toISOString(),
       version: '1.0.0',
-    };
+    }
   }
 }

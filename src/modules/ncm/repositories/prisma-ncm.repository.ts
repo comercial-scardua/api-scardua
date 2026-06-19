@@ -1,9 +1,9 @@
-import { Injectable } from '@nestjs/common';
-import type { ncm } from '@prisma/client';
-import { PrismaService } from '../../../prisma/prisma.service';
-import type { AtualizarNcmDto } from '../dto/atualizar-ncm.dto';
-import type { CriarNcmDto } from '../dto/criar-ncm.dto';
-import type { NcmRepository, NcmUniqueKey } from './ncm.repository';
+import { Injectable } from '@nestjs/common'
+import type { ncm } from '@prisma/client'
+import { PrismaService } from '../../../prisma/prisma.service'
+import type { AtualizarNcmDto } from '../dto/atualizar-ncm.dto'
+import type { CriarNcmDto } from '../dto/criar-ncm.dto'
+import type { NcmRepository, NcmUniqueKey } from './ncm.repository'
 
 @Injectable()
 export class PrismaNcmRepository implements NcmRepository {
@@ -16,11 +16,11 @@ export class PrismaNcmRepository implements NcmRepository {
     uf_emissor,
     uf_destino,
   }: {
-    termo?: string;
-    categoria?: string;
-    empresa?: string;
-    uf_emissor?: string;
-    uf_destino?: string;
+    termo?: string
+    categoria?: string
+    empresa?: string
+    uf_emissor?: string
+    uf_destino?: string
   }) {
     return this.prisma.ncm.findMany({
       where: {
@@ -37,11 +37,11 @@ export class PrismaNcmRepository implements NcmRepository {
         }),
       },
       orderBy: { codigo_ncm: 'asc' },
-    });
+    })
   }
 
   findById(id: number) {
-    return this.prisma.ncm.findUnique({ where: { id } });
+    return this.prisma.ncm.findUnique({ where: { id } })
   }
 
   findByUniqueKey(key: NcmUniqueKey) {
@@ -50,7 +50,7 @@ export class PrismaNcmRepository implements NcmRepository {
         codigo_ncm_categoria_cliente_empresa_uf_emissor_uf_destino_cst_origem:
           key,
       },
-    });
+    })
   }
 
   create(data: CriarNcmDto, usuarioNome: string): Promise<ncm> {
@@ -65,29 +65,29 @@ export class PrismaNcmRepository implements NcmRepository {
         usuario_nome: usuarioNome,
         ativo: true,
       },
-    });
+    })
   }
 
   update(id: number, data: AtualizarNcmDto): Promise<ncm> {
     return this.prisma.ncm.update({
       where: { id },
       data: { ...data, data_modificado: new Date() },
-    });
+    })
   }
 
   desativar(id: number): Promise<ncm> {
     return this.prisma.ncm.update({
       where: { id },
       data: { ativo: false, data_modificado: new Date() },
-    });
+    })
   }
 
   async importar(
     itens: CriarNcmDto[],
     usuarioNome: string,
   ): Promise<{ criados: number; atualizados: number }> {
-    let criados = 0;
-    let atualizados = 0;
+    let criados = 0
+    let atualizados = 0
 
     for (const item of itens) {
       const key: NcmUniqueKey = {
@@ -97,24 +97,24 @@ export class PrismaNcmRepository implements NcmRepository {
         uf_emissor: item.uf_emissor.trim().toUpperCase(),
         uf_destino: item.uf_destino.trim().toUpperCase(),
         cst_origem: item.cst_origem ?? '',
-      };
+      }
 
-      const existe = await this.findByUniqueKey(key);
+      const existe = await this.findByUniqueKey(key)
 
       if (existe) {
         await this.prisma.ncm.update({
           where: { id: existe.id },
           data: { ...item, ...key, data_modificado: new Date() },
-        });
-        atualizados++;
+        })
+        atualizados++
       } else {
         await this.prisma.ncm.create({
           data: { ...item, ...key, usuario_nome: usuarioNome, ativo: true },
-        });
-        criados++;
+        })
+        criados++
       }
     }
 
-    return { criados, atualizados };
+    return { criados, atualizados }
   }
 }

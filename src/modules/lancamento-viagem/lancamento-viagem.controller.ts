@@ -8,12 +8,12 @@ import {
   Post,
   Query,
   UseGuards,
-} from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
-import { RequirePermission } from '../../auth/decorators/require-permission.decorator';
-import { PermissionsGuard } from '../../auth/guards/permissions.guard';
-import type { LancamentoViagemBulkDto } from './dto/criar-lancamento-viagem.dto';
-import { LancamentoViagemRepository } from './repositories/lancamento-viagem.repository';
+} from '@nestjs/common'
+import { ApiBearerAuth, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger'
+import { RequirePermission } from '../../auth/decorators/require-permission.decorator'
+import { PermissionsGuard } from '../../auth/guards/permissions.guard'
+import type { LancamentoViagemBulkDto } from './dto/criar-lancamento-viagem.dto'
+import { LancamentoViagemRepository } from './repositories/lancamento-viagem.repository'
 
 @ApiTags('Lancamento Viagem')
 @ApiBearerAuth()
@@ -38,15 +38,18 @@ export class LancamentoViagemController {
       caixaId: caixaViagemId ? parseInt(caixaViagemId, 10) : undefined,
       tipo,
       userId,
-    });
+    })
   }
 
   @Post()
   @HttpCode(201)
   @RequirePermission('lancamentoviagem', 'edit')
-  @ApiOperation({ summary: 'Criar lançamento(s) de viagem — suporta formato bulk com lancamentos[]' })
+  @ApiOperation({
+    summary:
+      'Criar lançamento(s) de viagem — suporta formato bulk com lancamentos[]',
+  })
   create(@Body() dto: LancamentoViagemBulkDto) {
-    return this.repo.createBulk(dto);
+    return this.repo.createBulk(dto)
   }
 
   @Get('usuario/:id')
@@ -54,7 +57,7 @@ export class LancamentoViagemController {
   @RequirePermission('lancamentoviagem', 'access')
   @ApiOperation({ summary: 'Listar lançamentos de viagem por colaboradorId' })
   findByColaborador(@Param('id', ParseIntPipe) id: number) {
-    return this.repo.findByColaboradorId(id);
+    return this.repo.findByColaboradorId(id)
   }
 
   @Post('usuario/:id')
@@ -67,6 +70,6 @@ export class LancamentoViagemController {
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: LancamentoViagemBulkDto,
   ) {
-    return this.repo.createBulkForColaborador(id, dto);
+    return this.repo.createBulkForColaborador(id, dto)
   }
 }

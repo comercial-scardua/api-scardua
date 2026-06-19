@@ -5,7 +5,10 @@ import type { CriarMovimentacaoEpiDto } from '../dto/criar-movimentacao-epi.dto'
 import { EpiRepository } from '../repositories/epi.repository'
 import { EstoqueInsuficienteError } from './errors/estoque-insuficiente.error'
 
-type Result = Either<EstoqueInsuficienteError, { movimentacao: epi_movimentacoes }>
+type Result = Either<
+  EstoqueInsuficienteError,
+  { movimentacao: epi_movimentacoes }
+>
 
 @Injectable()
 export class CriarMovimentacaoEpiUseCase {

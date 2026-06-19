@@ -6,4 +6,6 @@ export const AtualizarCargoEpiSchema = z.object({
   descricao: z.string().optional(),
 })
 
-export class AtualizarCargoEpiDto extends createZodDto(AtualizarCargoEpiSchema) {}
+export class AtualizarCargoEpiDto extends createZodDto(
+  AtualizarCargoEpiSchema,
+) {}

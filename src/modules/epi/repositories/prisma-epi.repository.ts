@@ -24,7 +24,9 @@ const SELECT_MOV_DETALHE = {
   observacoes: true,
   empresaId: true,
   createdAt: true,
-  epi: { select: { id: true, nome: true, codigo: true, ca: true, categoria: true } },
+  epi: {
+    select: { id: true, nome: true, codigo: true, ca: true, categoria: true },
+  },
   colaborador: { select: { id: true, nome: true, sobrenome: true } },
 } as const
 
@@ -58,18 +60,40 @@ export class PrismaEpiRepository implements EpiRepository {
   async findGestorPerfil(userId: string) {
     const user = await this.prisma.users.findUnique({ where: { id: userId } })
     if (!user)
-      return { isAdmin: false, isGestor: false, colaboradorId: null, empresaIds: [], empresasGestor: [] }
+      return {
+        isAdmin: false,
+        isGestor: false,
+        colaboradorId: null,
+        empresaIds: [],
+        empresasGestor: [],
+      }
 
     if (user.role === 'ADMIN')
-      return { isAdmin: true, isGestor: false, colaboradorId: null, empresaIds: [], empresasGestor: [] }
+      return {
+        isAdmin: true,
+        isGestor: false,
+        colaboradorId: null,
+        empresaIds: [],
+        empresasGestor: [],
+      }
 
     const colaborador = await this.prisma.colaboradores.findFirst({
       where: { userId },
-      include: { gestorEmpresas: { include: { empresa: { select: { id: true, nomeEmpresa: true } } } } },
+      include: {
+        gestorEmpresas: {
+          include: { empresa: { select: { id: true, nomeEmpresa: true } } },
+        },
+      },
     })
 
     if (!colaborador)
-      return { isAdmin: false, isGestor: false, colaboradorId: null, empresaIds: [], empresasGestor: [] }
+      return {
+        isAdmin: false,
+        isGestor: false,
+        colaboradorId: null,
+        empresaIds: [],
+        empresasGestor: [],
+      }
 
     const empresasGestor = colaborador.gestorEmpresas.map((ge) => ({
       id: ge.empresa.id,
@@ -95,7 +119,12 @@ export class PrismaEpiRepository implements EpiRepository {
 
   // ── EPIs ──────────────────────────────────────────────────────────────────
 
-  findAllEpis(filters?: { categoria?: string; status?: string; search?: string; baixo_estoque?: boolean }) {
+  findAllEpis(filters?: {
+    categoria?: string
+    status?: string
+    search?: string
+    baixo_estoque?: boolean
+  }) {
     const where: Record<string, unknown> = {}
     if (filters?.categoria) where.categoria = filters.categoria
     if (filters?.status) where.status = filters.status.toUpperCase()
@@ -110,7 +139,9 @@ export class PrismaEpiRepository implements EpiRepository {
     if (filters?.baixo_estoque) {
       where.AND = [
         { status: 'ATIVO' },
-        { estoque_atual: { lte: this.prisma.epis.fields.estoque_minimo as any } },
+        {
+          estoque_atual: { lte: this.prisma.epis.fields.estoque_minimo as any },
+        },
       ]
     }
     return this.prisma.epis.findMany({ where, orderBy: { nome: 'asc' } })
@@ -174,8 +205,11 @@ export class PrismaEpiRepository implements EpiRepository {
   }
 
   async deleteEpi(id: number) {
-    const links = await this.prisma.epi_cargo_obrigatorio.count({ where: { epi_id: id } })
-    if (links > 0) throw new Error('EPI possui vínculos com cargos obrigatórios')
+    const links = await this.prisma.epi_cargo_obrigatorio.count({
+      where: { epi_id: id },
+    })
+    if (links > 0)
+      throw new Error('EPI possui vínculos com cargos obrigatórios')
     await this.prisma.epis.delete({ where: { id } })
   }
 
@@ -183,7 +217,9 @@ export class PrismaEpiRepository implements EpiRepository {
 
   findAllCargos() {
     return this.prisma.epi_cargos.findMany({
-      include: { _count: { select: { colaboradores: true, epis_obrigatorios: true } } },
+      include: {
+        _count: { select: { colaboradores: true, epis_obrigatorios: true } },
+      },
       orderBy: { nome: 'asc' },
     })
   }
@@ -191,7 +227,22 @@ export class PrismaEpiRepository implements EpiRepository {
   findCargoById(id: number) {
     return this.prisma.epi_cargos.findUnique({
       where: { id },
-      include: { epis_obrigatorios: { include: { epi: { select: { id: true, nome: true, ca: true, categoria: true, estoque_atual: true, status: true } } } } },
+      include: {
+        epis_obrigatorios: {
+          include: {
+            epi: {
+              select: {
+                id: true,
+                nome: true,
+                ca: true,
+                categoria: true,
+                estoque_atual: true,
+                status: true,
+              },
+            },
+          },
+        },
+      },
     })
   }
 
@@ -204,7 +255,9 @@ export class PrismaEpiRepository implements EpiRepository {
   }
 
   async deleteCargo(id: number) {
-    const links = await this.prisma.epi_cargo_obrigatorio.count({ where: { cargo_id: id } })
+    const links = await this.prisma.epi_cargo_obrigatorio.count({
+      where: { cargo_id: id },
+    })
     if (links > 0) throw new Error('Cargo possui EPIs obrigatórios vinculados')
     await this.prisma.epi_cargos.delete({ where: { id } })
   }
@@ -214,14 +267,27 @@ export class PrismaEpiRepository implements EpiRepository {
   findCargoEpiLinks(cargo_id?: number) {
     return this.prisma.epi_cargo_obrigatorio.findMany({
       where: cargo_id ? { cargo_id } : undefined,
-      include: { epi: { select: { id: true, nome: true, ca: true, categoria: true, estoque_atual: true, status: true } } },
+      include: {
+        epi: {
+          select: {
+            id: true,
+            nome: true,
+            ca: true,
+            categoria: true,
+            estoque_atual: true,
+            status: true,
+          },
+        },
+      },
       orderBy: { epi: { nome: 'asc' } },
     })
   }
 
   async createCargoEpiLink(data: AdicionarEpiCargoDto & { cargo_id: number }) {
     const existing = await this.prisma.epi_cargo_obrigatorio.findUnique({
-      where: { cargo_id_epi_id: { cargo_id: data.cargo_id, epi_id: data.epi_id } },
+      where: {
+        cargo_id_epi_id: { cargo_id: data.cargo_id, epi_id: data.epi_id },
+      },
     })
     if (existing) throw new Error('Vínculo já existe')
 
@@ -233,7 +299,18 @@ export class PrismaEpiRepository implements EpiRepository {
         quantidade_padrao: data.quantidade_padrao ?? 1,
         obrigatorio: data.obrigatorio ?? true,
       },
-      include: { epi: { select: { id: true, nome: true, ca: true, categoria: true, estoque_atual: true, status: true } } },
+      include: {
+        epi: {
+          select: {
+            id: true,
+            nome: true,
+            ca: true,
+            categoria: true,
+            estoque_atual: true,
+            status: true,
+          },
+        },
+      },
     })
   }
 
@@ -250,36 +327,50 @@ export class PrismaEpiRepository implements EpiRepository {
     const where: Record<string, unknown> = { oculto: false }
     if (filters?.empresaId) where.empresaId = filters.empresaId
     if (filters?.status === 'inativo') where.oculto = true
-    if (gestorColaboradorId !== undefined) where.gestorId = gestorColaboradorId
+    // Filtra colaboradores cujo gestor é o informado, via tabela de junção.
+    if (gestorColaboradorId !== undefined)
+      where.gestoresRelacao = { some: { gestorId: gestorColaboradorId } }
 
     const cols = await this.prisma.colaboradores.findMany({
       where,
       include: {
         empresa: { select: { id: true, nomeEmpresa: true, cnpj: true } },
         epiCargo: { select: { id: true, nome: true } },
-        gestor: { select: { id: true, nome: true, sobrenome: true } },
+        gestoresRelacao: {
+          take: 1,
+          include: {
+            gestor: { select: { id: true, nome: true, sobrenome: true } },
+          },
+        },
       },
       orderBy: { nome: 'asc' },
     })
 
-    return cols.map((c) => ({
-      id: c.id,
-      nome: `${c.nome ?? ''} ${c.sobrenome ?? ''}`.trim(),
-      matricula: c.numeroEmpresa,
-      cargo_id: c.epiCargoId,
-      cargo: c.epiCargo?.nome ?? null,
-      setor: c.setor,
-      unidade: c.empresa?.nomeEmpresa ?? null,
-      data_admissao: c.admissao ? c.admissao.toISOString().split('T')[0] : null,
-      status: c.oculto ? ('inativo' as const) : ('ativo' as const),
-      gestor: c.gestor ? `${c.gestor.nome ?? ''} ${c.gestor.sobrenome ?? ''}`.trim() : null,
-      gestorId: c.gestorId,
-      observacoes: c.epiObservacoes ?? null,
-      isGestor: c.isGestor,
-      empresaId: c.empresaId,
-      empresaNome: c.empresa?.nomeEmpresa ?? null,
-      empresaCnpj: c.empresa?.cnpj ?? null,
-    }))
+    return cols.map((c) => {
+      const gestor = c.gestoresRelacao[0]?.gestor ?? null
+      return {
+        id: c.id,
+        nome: `${c.nome ?? ''} ${c.sobrenome ?? ''}`.trim(),
+        matricula: c.numeroEmpresa,
+        cargo_id: c.epiCargoId,
+        cargo: c.epiCargo?.nome ?? null,
+        setor: c.setor,
+        unidade: c.empresa?.nomeEmpresa ?? null,
+        data_admissao: c.admissao
+          ? c.admissao.toISOString().split('T')[0]
+          : null,
+        status: c.oculto ? ('inativo' as const) : ('ativo' as const),
+        gestor: gestor
+          ? `${gestor.nome ?? ''} ${gestor.sobrenome ?? ''}`.trim()
+          : null,
+        gestorId: gestor?.id ?? null,
+        observacoes: c.epiObservacoes ?? null,
+        isGestor: c.isGestor,
+        empresaId: c.empresaId,
+        empresaNome: c.empresa?.nomeEmpresa ?? null,
+        empresaCnpj: c.empresa?.cnpj ?? null,
+      }
+    })
   }
 
   async updateColaboradorEpi(id: number, data: AtualizarColaboradorEpiDto) {
@@ -287,17 +378,36 @@ export class PrismaEpiRepository implements EpiRepository {
       where: { id },
       data: {
         ...(data.epiCargoId !== undefined && { epiCargoId: data.epiCargoId }),
-        ...(data.gestorId !== undefined && { gestorId: data.gestorId }),
-        ...(data.epiObservacoes !== undefined && { epiObservacoes: data.epiObservacoes }),
+        ...(data.epiObservacoes !== undefined && {
+          epiObservacoes: data.epiObservacoes,
+        }),
       },
     })
+
+    // Vínculo de gestor é gerenciado na tabela de junção colaborador_gestores.
+    if (data.gestorId !== undefined) {
+      await this.prisma.colaborador_gestores.deleteMany({
+        where: { colaboradorId: id },
+      })
+      if (data.gestorId !== null) {
+        await this.prisma.colaborador_gestores.create({
+          data: { colaboradorId: id, gestorId: data.gestorId },
+        })
+      }
+    }
+
     const cols = await this.findColaboradores(undefined, undefined)
     return cols.find((c) => c.id === id)!
   }
 
   // ── Movimentações ─────────────────────────────────────────────────────────
 
-  findMovimentacoes(filters?: { colaborador_id?: number; epi_id?: number; tipo?: string; empresaId?: number }) {
+  findMovimentacoes(filters?: {
+    colaborador_id?: number
+    epi_id?: number
+    tipo?: string
+    empresaId?: number
+  }) {
     const where: Record<string, unknown> = {}
     if (filters?.colaborador_id) where.colaborador_id = filters.colaborador_id
     if (filters?.epi_id) where.epi_id = filters.epi_id
@@ -323,7 +433,9 @@ export class PrismaEpiRepository implements EpiRepository {
     observacoes?: string
     empresaId?: number
   }) {
-    const epi = await this.prisma.epis.findUniqueOrThrow({ where: { id: data.epi_id } })
+    const epi = await this.prisma.epis.findUniqueOrThrow({
+      where: { id: data.epi_id },
+    })
     const dataMovimentacao = new Date(data.data_movimentacao)
     let proximaEntrega: Date
     if (data.proxima_entrega) {
@@ -362,10 +474,14 @@ export class PrismaEpiRepository implements EpiRepository {
     const isBaixa = tipoUpper === 'BAIXA'
     const isDecrement = !isDevolucao && !isBaixa
 
-    const epi = await this.prisma.epis.findUniqueOrThrow({ where: { id: data.epi_id } })
+    const epi = await this.prisma.epis.findUniqueOrThrow({
+      where: { id: data.epi_id },
+    })
 
     if (isDecrement && epi.estoque_atual < data.quantidade) {
-      throw new Error(`Estoque insuficiente. Disponível: ${epi.estoque_atual}, solicitado: ${data.quantidade}`)
+      throw new Error(
+        `Estoque insuficiente. Disponível: ${epi.estoque_atual}, solicitado: ${data.quantidade}`,
+      )
     }
 
     const dataMovimentacao = new Date(data.data_movimentacao)
@@ -415,9 +531,15 @@ export class PrismaEpiRepository implements EpiRepository {
         })
 
         if (isDevolucao) {
-          await tx.epis.update({ where: { id: data.epi_id }, data: { estoque_atual: { increment: data.quantidade } } })
+          await tx.epis.update({
+            where: { id: data.epi_id },
+            data: { estoque_atual: { increment: data.quantidade } },
+          })
         } else {
-          await tx.epis.update({ where: { id: data.epi_id }, data: { estoque_atual: { decrement: data.quantidade } } })
+          await tx.epis.update({
+            where: { id: data.epi_id },
+            data: { estoque_atual: { decrement: data.quantidade } },
+          })
         }
 
         if (data.empresaId) {
@@ -435,7 +557,10 @@ export class PrismaEpiRepository implements EpiRepository {
   async findEstoque(filters?: { epi_id?: number; empresaId?: number }) {
     const epiWhere: Record<string, unknown> = { status: 'ATIVO' }
     const movWhere: Record<string, unknown> = {}
-    if (filters?.epi_id) { epiWhere.id = filters.epi_id; movWhere.epi_id = filters.epi_id }
+    if (filters?.epi_id) {
+      epiWhere.id = filters.epi_id
+      movWhere.epi_id = filters.epi_id
+    }
     if (filters?.empresaId) movWhere.empresaId = filters.empresaId
 
     const [episRaw, movimentacoes] = await Promise.all([
@@ -450,7 +575,11 @@ export class PrismaEpiRepository implements EpiRepository {
 
     const epis = episRaw.map((e) => ({
       ...e,
-      situacao: (e.estoque_atual <= 0 ? 'zerado' : e.estoque_atual <= e.estoque_minimo ? 'baixo' : 'ok') as 'ok' | 'baixo' | 'zerado',
+      situacao: (e.estoque_atual <= 0
+        ? 'zerado'
+        : e.estoque_atual <= e.estoque_minimo
+          ? 'baixo'
+          : 'ok') as 'ok' | 'baixo' | 'zerado',
     }))
 
     return { epis, movimentacoes }
@@ -459,10 +588,14 @@ export class PrismaEpiRepository implements EpiRepository {
   async createEstoqueMovimentacao(data: CriarMovimentacaoEstoqueDto) {
     const tipoUpper = data.tipo.toUpperCase()
     const delta = calcDelta(tipoUpper, data.quantidade)
-    const epi = await this.prisma.epis.findUniqueOrThrow({ where: { id: data.epi_id } })
+    const epi = await this.prisma.epis.findUniqueOrThrow({
+      where: { id: data.epi_id },
+    })
 
     if (delta < 0 && epi.estoque_atual + delta < 0) {
-      throw new Error(`Estoque insuficiente. Disponível: ${epi.estoque_atual}, operação: ${delta}`)
+      throw new Error(
+        `Estoque insuficiente. Disponível: ${epi.estoque_atual}, operação: ${delta}`,
+      )
     }
 
     return this.prisma.$transaction(async (tx) => {
@@ -471,7 +604,9 @@ export class PrismaEpiRepository implements EpiRepository {
           epi_id: data.epi_id,
           tipo: tipoUpper as any,
           quantidade: data.quantidade,
-          data_movimentacao: data.data_movimentacao ? new Date(data.data_movimentacao) : new Date(),
+          data_movimentacao: data.data_movimentacao
+            ? new Date(data.data_movimentacao)
+            : new Date(),
           responsavel: data.responsavel,
           observacoes: data.observacoes,
           empresaId: data.empresaId,
@@ -491,8 +626,14 @@ export class PrismaEpiRepository implements EpiRepository {
     })
   }
 
-  async updateEstoqueMovimentacao(id: number, data: Partial<CriarMovimentacaoEstoqueDto>) {
-    const existing = await this.prisma.epi_estoque_movimentacoes.findUniqueOrThrow({ where: { id } })
+  async updateEstoqueMovimentacao(
+    id: number,
+    data: Partial<CriarMovimentacaoEstoqueDto>,
+  ) {
+    const existing =
+      await this.prisma.epi_estoque_movimentacoes.findUniqueOrThrow({
+        where: { id },
+      })
     const oldDelta = calcDelta(existing.tipo, existing.quantidade)
     const newTipo = data.tipo ? data.tipo.toUpperCase() : existing.tipo
     const newQtd = data.quantidade ?? existing.quantidade
@@ -500,8 +641,11 @@ export class PrismaEpiRepository implements EpiRepository {
     const diff = newDelta - oldDelta
 
     if (diff < 0) {
-      const epi = await this.prisma.epis.findUniqueOrThrow({ where: { id: existing.epi_id } })
-      if (epi.estoque_atual + diff < 0) throw new Error('Estoque insuficiente para esta atualização')
+      const epi = await this.prisma.epis.findUniqueOrThrow({
+        where: { id: existing.epi_id },
+      })
+      if (epi.estoque_atual + diff < 0)
+        throw new Error('Estoque insuficiente para esta atualização')
     }
 
     return this.prisma.$transaction(async (tx) => {
@@ -510,9 +654,13 @@ export class PrismaEpiRepository implements EpiRepository {
         data: {
           ...(data.tipo && { tipo: data.tipo.toUpperCase() as any }),
           ...(data.quantidade !== undefined && { quantidade: data.quantidade }),
-          ...(data.data_movimentacao && { data_movimentacao: new Date(data.data_movimentacao) }),
+          ...(data.data_movimentacao && {
+            data_movimentacao: new Date(data.data_movimentacao),
+          }),
           ...(data.responsavel && { responsavel: data.responsavel }),
-          ...(data.observacoes !== undefined && { observacoes: data.observacoes }),
+          ...(data.observacoes !== undefined && {
+            observacoes: data.observacoes,
+          }),
           ...(data.empresaId !== undefined && { empresaId: data.empresaId }),
         },
       })
@@ -529,7 +677,10 @@ export class PrismaEpiRepository implements EpiRepository {
   }
 
   async deleteEstoqueMovimentacao(id: number) {
-    const existing = await this.prisma.epi_estoque_movimentacoes.findUniqueOrThrow({ where: { id } })
+    const existing =
+      await this.prisma.epi_estoque_movimentacoes.findUniqueOrThrow({
+        where: { id },
+      })
     const delta = calcDelta(existing.tipo, existing.quantidade)
 
     await this.prisma.$transaction(async (tx) => {
@@ -547,7 +698,14 @@ export class PrismaEpiRepository implements EpiRepository {
     const [episRaw, empresasRaw, saldosRaw] = await Promise.all([
       this.prisma.epis.findMany({
         where: { status: 'ATIVO' },
-        select: { id: true, codigo: true, nome: true, categoria: true, estoque_minimo: true, estoque_atual: true },
+        select: {
+          id: true,
+          codigo: true,
+          nome: true,
+          categoria: true,
+          estoque_minimo: true,
+          estoque_atual: true,
+        },
         orderBy: { nome: 'asc' },
       }),
       this.prisma.empresas.findMany({
@@ -555,7 +713,9 @@ export class PrismaEpiRepository implements EpiRepository {
         select: { id: true, nomeEmpresa: true, numero: true, cidade: true },
         orderBy: { nomeEmpresa: 'asc' },
       }),
-      this.prisma.$queryRawUnsafe<{ epi_id: number; empresaId: number; saldo: string }[]>(`
+      this.prisma.$queryRawUnsafe<
+        { epi_id: number; empresaId: number; saldo: string }[]
+      >(`
         SELECT epi_id, empresaId,
           SUM(CASE
             WHEN tipo IN ('ENTRADA','DEVOLUCAO') THEN quantidade
@@ -604,39 +764,62 @@ export class PrismaEpiRepository implements EpiRepository {
     const users = await this.prisma.users.findMany({
       where: {
         oculto: false,
-        OR: [
-          { role: 'ADMIN' },
-          { permissions_json: { contains: '"epi"' } },
-        ],
+        OR: [{ role: 'ADMIN' }, { permissions_json: { contains: '"epi"' } }],
       },
       select: { id: true, nome: true, sobrenome: true },
       orderBy: { nome: 'asc' },
     })
-    return users.map((u) => ({ id: u.id, nome: `${u.nome} ${u.sobrenome}`.trim() }))
+    return users.map((u) => ({
+      id: u.id,
+      nome: `${u.nome} ${u.sobrenome}`.trim(),
+    }))
   }
 
   async findDashboard(empresaId?: number) {
     const hoje = new Date()
-    const seteD = new Date(); seteD.setDate(hoje.getDate() + 7)
+    const seteD = new Date()
+    seteD.setDate(hoje.getDate() + 7)
     const inicioMes = new Date(hoje.getFullYear(), hoje.getMonth(), 1)
 
     const base = empresaId ? { empresaId } : {}
 
-    const [totalColabs, totalEpis, vencidos, proximos, estoqueBaixo, entregasMes, ultimasMovs] =
-      await Promise.all([
-        this.prisma.colaboradores.count({ where: { oculto: false } }),
-        this.prisma.epis.count({ where: { status: 'ATIVO' } }),
-        this.prisma.epi_movimentacoes.count({ where: { ...base, tipo: 'ENTREGA', proxima_entrega: { lt: hoje } } }),
-        this.prisma.epi_movimentacoes.count({ where: { ...base, tipo: 'ENTREGA', proxima_entrega: { gte: hoje, lte: seteD } } }),
-        this.prisma.epis.count({ where: { status: 'ATIVO', estoque_atual: { lte: this.prisma.epis.fields.estoque_minimo as any } } }),
-        this.prisma.epi_movimentacoes.count({ where: { ...base, createdAt: { gte: inicioMes } } }),
-        this.prisma.epi_movimentacoes.findMany({
-          where: base,
-          select: SELECT_MOV_DETALHE,
-          take: 6,
-          orderBy: { data_movimentacao: 'desc' },
-        }),
-      ])
+    const [
+      totalColabs,
+      totalEpis,
+      vencidos,
+      proximos,
+      estoqueBaixo,
+      entregasMes,
+      ultimasMovs,
+    ] = await Promise.all([
+      this.prisma.colaboradores.count({ where: { oculto: false } }),
+      this.prisma.epis.count({ where: { status: 'ATIVO' } }),
+      this.prisma.epi_movimentacoes.count({
+        where: { ...base, tipo: 'ENTREGA', proxima_entrega: { lt: hoje } },
+      }),
+      this.prisma.epi_movimentacoes.count({
+        where: {
+          ...base,
+          tipo: 'ENTREGA',
+          proxima_entrega: { gte: hoje, lte: seteD },
+        },
+      }),
+      this.prisma.epis.count({
+        where: {
+          status: 'ATIVO',
+          estoque_atual: { lte: this.prisma.epis.fields.estoque_minimo as any },
+        },
+      }),
+      this.prisma.epi_movimentacoes.count({
+        where: { ...base, createdAt: { gte: inicioMes } },
+      }),
+      this.prisma.epi_movimentacoes.findMany({
+        where: base,
+        select: SELECT_MOV_DETALHE,
+        take: 6,
+        orderBy: { data_movimentacao: 'desc' },
+      }),
+    ])
 
     return {
       totalColaboradores: totalColabs,
@@ -651,7 +834,8 @@ export class PrismaEpiRepository implements EpiRepository {
 
   async findAlertas(empresaId?: number) {
     const hoje = new Date()
-    const seteD = new Date(); seteD.setDate(hoje.getDate() + 7)
+    const seteD = new Date()
+    seteD.setDate(hoje.getDate() + 7)
     const base = empresaId ? { empresaId } : {}
 
     const [vencidos, proximos, estoqueBaixoRaw] = await Promise.all([
@@ -661,19 +845,29 @@ export class PrismaEpiRepository implements EpiRepository {
         orderBy: { proxima_entrega: 'asc' },
       }),
       this.prisma.epi_movimentacoes.findMany({
-        where: { ...base, tipo: 'ENTREGA', proxima_entrega: { gte: hoje, lte: seteD } },
+        where: {
+          ...base,
+          tipo: 'ENTREGA',
+          proxima_entrega: { gte: hoje, lte: seteD },
+        },
         select: SELECT_MOV_DETALHE,
         orderBy: { proxima_entrega: 'asc' },
       }),
       this.prisma.epis.findMany({
-        where: { status: 'ATIVO', estoque_atual: { lte: this.prisma.epis.fields.estoque_minimo as any } },
+        where: {
+          status: 'ATIVO',
+          estoque_atual: { lte: this.prisma.epis.fields.estoque_minimo as any },
+        },
         orderBy: { nome: 'asc' },
       }),
     ])
 
     const estoqueBaixo = estoqueBaixoRaw.map((e) => ({
       ...e,
-      situacao: (e.estoque_atual <= 0 ? 'zerado' : 'baixo') as 'ok' | 'baixo' | 'zerado',
+      situacao: (e.estoque_atual <= 0 ? 'zerado' : 'baixo') as
+        | 'ok'
+        | 'baixo'
+        | 'zerado',
     }))
 
     return {
@@ -686,7 +880,12 @@ export class PrismaEpiRepository implements EpiRepository {
 
   // ── Transferências ────────────────────────────────────────────────────────
 
-  async findTransferencias(filters?: { page?: number; limit?: number; dataInicio?: string; dataFim?: string }) {
+  async findTransferencias(filters?: {
+    page?: number
+    limit?: number
+    dataInicio?: string
+    dataFim?: string
+  }) {
     const page = filters?.page ?? 1
     const limit = filters?.limit ?? 20
     const where: Record<string, unknown> = {}
@@ -708,11 +907,19 @@ export class PrismaEpiRepository implements EpiRepository {
     ])
 
     const epiIds = [...new Set(rows.map((r) => r.epiId))]
-    const empIds = [...new Set(rows.flatMap((r) => [r.empresaOrigemId, r.empresaDestinoId]))]
+    const empIds = [
+      ...new Set(rows.flatMap((r) => [r.empresaOrigemId, r.empresaDestinoId])),
+    ]
 
     const [episMap, empMap] = await Promise.all([
-      this.prisma.epis.findMany({ where: { id: { in: epiIds } }, select: { id: true, nome: true, codigo: true, categoria: true } }),
-      this.prisma.empresas.findMany({ where: { id: { in: empIds } }, select: { id: true, nomeEmpresa: true } }),
+      this.prisma.epis.findMany({
+        where: { id: { in: epiIds } },
+        select: { id: true, nome: true, codigo: true, categoria: true },
+      }),
+      this.prisma.empresas.findMany({
+        where: { id: { in: empIds } },
+        select: { id: true, nomeEmpresa: true },
+      }),
     ])
 
     const eMap = Object.fromEntries(episMap.map((e) => [e.id, e]))
@@ -743,12 +950,20 @@ export class PrismaEpiRepository implements EpiRepository {
 
     const saldoOrigem = Number(saldosRaw[0]?.saldo ?? 0)
     if (saldoOrigem < data.quantidade) {
-      throw new Error(`Saldo insuficiente na filial origem. Disponível: ${saldoOrigem}, solicitado: ${data.quantidade}`)
+      throw new Error(
+        `Saldo insuficiente na filial origem. Disponível: ${saldoOrigem}, solicitado: ${data.quantidade}`,
+      )
     }
 
     const [empresaOrigem, empresaDestino] = await Promise.all([
-      this.prisma.empresas.findUnique({ where: { id: data.empresaOrigemId }, select: { nomeEmpresa: true } }),
-      this.prisma.empresas.findUnique({ where: { id: data.empresaDestinoId }, select: { nomeEmpresa: true } }),
+      this.prisma.empresas.findUnique({
+        where: { id: data.empresaOrigemId },
+        select: { nomeEmpresa: true },
+      }),
+      this.prisma.empresas.findUnique({
+        where: { id: data.empresaDestinoId },
+        select: { nomeEmpresa: true },
+      }),
     ])
 
     const dataTransf = new Date(data.dataTransferencia)
@@ -795,7 +1010,10 @@ export class PrismaEpiRepository implements EpiRepository {
       return {
         ...transf,
         produtoId: transf.epiId,
-        produto: await tx.epis.findUnique({ where: { id: data.produtoId }, select: { nome: true, codigo: true, categoria: true } }),
+        produto: await tx.epis.findUnique({
+          where: { id: data.produtoId },
+          select: { nome: true, codigo: true, categoria: true },
+        }),
         empresaOrigem,
         empresaDestino,
       }
@@ -803,14 +1021,20 @@ export class PrismaEpiRepository implements EpiRepository {
   }
 
   async deleteTransferencia(id: number) {
-    const transf = await this.prisma.epi_transferencias.findUniqueOrThrow({ where: { id } })
+    const transf = await this.prisma.epi_transferencias.findUniqueOrThrow({
+      where: { id },
+    })
 
     await this.prisma.$transaction(async (tx) => {
       if (transf.saidaId) {
-        await tx.epi_estoque_movimentacoes.delete({ where: { id: transf.saidaId } }).catch(() => null)
+        await tx.epi_estoque_movimentacoes
+          .delete({ where: { id: transf.saidaId } })
+          .catch(() => null)
       }
       if (transf.entradaId) {
-        await tx.epi_estoque_movimentacoes.delete({ where: { id: transf.entradaId } }).catch(() => null)
+        await tx.epi_estoque_movimentacoes
+          .delete({ where: { id: transf.entradaId } })
+          .catch(() => null)
       }
       await tx.epi_transferencias.delete({ where: { id } })
     })

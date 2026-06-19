@@ -1,5 +1,5 @@
-import { createZodDto } from 'nestjs-zod';
-import { z } from 'zod';
+import { createZodDto } from 'nestjs-zod'
+import { z } from 'zod'
 
 export const CriarContaCorrenteSchema = z.object({
   data: z.string().optional(),
@@ -10,6 +10,8 @@ export const CriarContaCorrenteSchema = z.object({
   empresaId: z.number().int().positive().optional().nullable(),
   colaboradorId: z.number().int().positive().optional().nullable(),
   oculto: z.boolean().default(false),
-});
+})
 
-export class CriarContaCorrenteDto extends createZodDto(CriarContaCorrenteSchema) {}
+export class CriarContaCorrenteDto extends createZodDto(
+  CriarContaCorrenteSchema,
+) {}

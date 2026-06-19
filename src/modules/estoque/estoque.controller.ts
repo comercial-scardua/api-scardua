@@ -16,28 +16,34 @@ import {
   UploadedFile,
   UseGuards,
   UseInterceptors,
-} from '@nestjs/common';
-import { PrismaService } from '../../prisma/prisma.service';
-import { FileInterceptor } from '@nestjs/platform-express';
-import { ApiBearerAuth, ApiConsumes, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
-import { CurrentUser } from '../../auth/decorators/current-user.decorator';
-import { RequirePermission } from '../../auth/decorators/require-permission.decorator';
-import { PermissionsGuard } from '../../auth/guards/permissions.guard';
-import type { JwtPayload } from '../../auth/types/jwt-payload.type';
-import type { CriarEntradaDto } from './dto/criar-entrada.dto';
-import type { CriarProdutoDto } from './dto/criar-produto.dto';
-import type { CriarSaidaDto } from './dto/criar-saida.dto';
-import type { CriarTransferenciaDto } from './dto/criar-transferencia.dto';
-import { EstoqueRepository } from './repositories/estoque.repository';
-import { AtualizarProdutoUseCase } from './use-cases/atualizar-produto.use-case';
-import { CriarEntradaUseCase } from './use-cases/criar-entrada.use-case';
-import { CriarProdutoUseCase } from './use-cases/criar-produto.use-case';
-import { CriarSaidaUseCase } from './use-cases/criar-saida.use-case';
-import { CriarTransferenciaUseCase } from './use-cases/criar-transferencia.use-case';
-import { DesativarProdutoUseCase } from './use-cases/desativar-produto.use-case';
-import { CodigoJaCadastradoError } from './use-cases/errors/codigo-ja-cadastrado.error';
-import { ProdutoNaoEncontradoError } from './use-cases/errors/produto-nao-encontrado.error';
-import { SaldoInsuficienteError } from './use-cases/errors/saldo-insuficiente.error';
+} from '@nestjs/common'
+import { PrismaService } from '../../prisma/prisma.service'
+import { FileInterceptor } from '@nestjs/platform-express'
+import {
+  ApiBearerAuth,
+  ApiConsumes,
+  ApiOperation,
+  ApiQuery,
+  ApiTags,
+} from '@nestjs/swagger'
+import { CurrentUser } from '../../auth/decorators/current-user.decorator'
+import { RequirePermission } from '../../auth/decorators/require-permission.decorator'
+import { PermissionsGuard } from '../../auth/guards/permissions.guard'
+import type { JwtPayload } from '../../auth/types/jwt-payload.type'
+import type { CriarEntradaDto } from './dto/criar-entrada.dto'
+import type { CriarProdutoDto } from './dto/criar-produto.dto'
+import type { CriarSaidaDto } from './dto/criar-saida.dto'
+import type { CriarTransferenciaDto } from './dto/criar-transferencia.dto'
+import { EstoqueRepository } from './repositories/estoque.repository'
+import { AtualizarProdutoUseCase } from './use-cases/atualizar-produto.use-case'
+import { CriarEntradaUseCase } from './use-cases/criar-entrada.use-case'
+import { CriarProdutoUseCase } from './use-cases/criar-produto.use-case'
+import { CriarSaidaUseCase } from './use-cases/criar-saida.use-case'
+import { CriarTransferenciaUseCase } from './use-cases/criar-transferencia.use-case'
+import { DesativarProdutoUseCase } from './use-cases/desativar-produto.use-case'
+import { CodigoJaCadastradoError } from './use-cases/errors/codigo-ja-cadastrado.error'
+import { ProdutoNaoEncontradoError } from './use-cases/errors/produto-nao-encontrado.error'
+import { SaldoInsuficienteError } from './use-cases/errors/saldo-insuficiente.error'
 
 @ApiTags('Estoque')
 @ApiBearerAuth()
@@ -62,7 +68,7 @@ export class EstoqueController {
   @RequirePermission('estoque', 'access')
   @ApiOperation({ summary: 'Métricas do mês corrente' })
   dashboard() {
-    return this.repo.dashboard();
+    return this.repo.dashboard()
   }
 
   @Get('saldo-filiais')
@@ -76,19 +82,24 @@ export class EstoqueController {
     @Query('empresaId') empresaId?: number,
   ) {
     const [produtos, empresas, saldos] = await Promise.all([
-      this.repo.findProdutos({ status: 'ATIVO', ...(produtoId && { search: String(produtoId) }) }),
+      this.repo.findProdutos({
+        status: 'ATIVO',
+        ...(produtoId && { search: String(produtoId) }),
+      }),
       this.repo.findEmpresas(),
       this.repo.saldoFiliais(produtoId, empresaId),
-    ]);
-    return { produtos: produtos.data, empresas, saldos };
+    ])
+    return { produtos: produtos.data, empresas, saldos }
   }
 
   @Get('empresas')
   @HttpCode(200)
   @RequirePermission('estoque', 'access')
-  @ApiOperation({ summary: 'Listar empresas disponíveis para movimentações de estoque' })
+  @ApiOperation({
+    summary: 'Listar empresas disponíveis para movimentações de estoque',
+  })
   findEmpresas() {
-    return this.repo.findEmpresas();
+    return this.repo.findEmpresas()
   }
 
   // ── Produtos ──────────────────────────────────────────────────────────────
@@ -109,7 +120,7 @@ export class EstoqueController {
     @Query('page') page?: number,
     @Query('limit') limit?: number,
   ) {
-    return this.repo.findProdutos({ search, categoria, status, page, limit });
+    return this.repo.findProdutos({ search, categoria, status, page, limit })
   }
 
   @Get('produtos/:id')
@@ -117,23 +128,26 @@ export class EstoqueController {
   @RequirePermission('estoque', 'access')
   @ApiOperation({ summary: 'Buscar produto por ID' })
   async findProduto(@Param('id', ParseIntPipe) id: number) {
-    const produto = await this.repo.findProdutoById(id);
-    if (!produto) throw new NotFoundException(`Produto #${id} não encontrado`);
-    return produto;
+    const produto = await this.repo.findProdutoById(id)
+    if (!produto) throw new NotFoundException(`Produto #${id} não encontrado`)
+    return produto
   }
 
   @Post('produtos')
   @HttpCode(201)
   @RequirePermission('estoque', 'edit')
   @ApiOperation({ summary: 'Criar produto (código interno único)' })
-  async createProduto(@Body() dto: CriarProdutoDto, @CurrentUser() user: JwtPayload) {
-    const result = await this.criarProduto.execute(dto, user.userId);
+  async createProduto(
+    @Body() dto: CriarProdutoDto,
+    @CurrentUser() user: JwtPayload,
+  ) {
+    const result = await this.criarProduto.execute(dto, user.userId)
 
     if (result.isLeft()) {
-      throw new ConflictException(result.value.message);
+      throw new ConflictException(result.value.message)
     }
 
-    return result.value.produto;
+    return result.value.produto
   }
 
   @Put('produtos/:id')
@@ -144,13 +158,13 @@ export class EstoqueController {
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: Partial<CriarProdutoDto>,
   ) {
-    const result = await this.atualizarProduto.execute(id, dto);
+    const result = await this.atualizarProduto.execute(id, dto)
 
     if (result.isLeft()) {
-      throw new NotFoundException(result.value.message);
+      throw new NotFoundException(result.value.message)
     }
 
-    return result.value.produto;
+    return result.value.produto
   }
 
   @Post('produtos/:id')
@@ -161,9 +175,9 @@ export class EstoqueController {
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: Partial<CriarProdutoDto>,
   ) {
-    const result = await this.atualizarProduto.execute(id, dto);
-    if (result.isLeft()) throw new NotFoundException(result.value.message);
-    return result.value.produto;
+    const result = await this.atualizarProduto.execute(id, dto)
+    if (result.isLeft()) throw new NotFoundException(result.value.message)
+    return result.value.produto
   }
 
   @Delete('produtos/:id')
@@ -171,10 +185,10 @@ export class EstoqueController {
   @RequirePermission('estoque', 'edit')
   @ApiOperation({ summary: 'Desativar produto (status = INATIVO)' })
   async deleteProduto(@Param('id', ParseIntPipe) id: number) {
-    const result = await this.desativarProduto.execute(id);
+    const result = await this.desativarProduto.execute(id)
 
     if (result.isLeft()) {
-      throw new NotFoundException(result.value.message);
+      throw new NotFoundException(result.value.message)
     }
   }
 
@@ -198,7 +212,14 @@ export class EstoqueController {
     @Query('page') page?: number,
     @Query('limit') limit?: number,
   ) {
-    return this.repo.findEntradas({ produtoId, numeroNotaFiscal, dataInicio, dataFim, page, limit });
+    return this.repo.findEntradas({
+      produtoId,
+      numeroNotaFiscal,
+      dataInicio,
+      dataFim,
+      page,
+      limit,
+    })
   }
 
   @Get('entradas/:id')
@@ -206,29 +227,34 @@ export class EstoqueController {
   @RequirePermission('estoque', 'access')
   @ApiOperation({ summary: 'Buscar entrada por ID' })
   async findEntrada(@Param('id', ParseIntPipe) id: number) {
-    const entrada = await this.repo.findEntradaById(id);
-    if (!entrada) throw new NotFoundException(`Entrada #${id} não encontrada`);
-    return entrada;
+    const entrada = await this.repo.findEntradaById(id)
+    if (!entrada) throw new NotFoundException(`Entrada #${id} não encontrada`)
+    return entrada
   }
 
   @Post('entradas')
   @HttpCode(201)
   @RequirePermission('estoque', 'edit')
-  @UseInterceptors(FileInterceptor('arquivo', { limits: { fileSize: 10 * 1024 * 1024 } }))
+  @UseInterceptors(
+    FileInterceptor('arquivo', { limits: { fileSize: 10 * 1024 * 1024 } }),
+  )
   @ApiConsumes('multipart/form-data')
-  @ApiOperation({ summary: 'Registrar entrada de estoque (transação atômica, upload NF opcional)' })
+  @ApiOperation({
+    summary:
+      'Registrar entrada de estoque (transação atômica, upload NF opcional)',
+  })
   async createEntrada(
     @Body() dto: CriarEntradaDto,
     @CurrentUser() user: JwtPayload,
     @UploadedFile() file?: Express.Multer.File,
   ) {
-    const result = await this.criarEntrada.execute(dto, user.userId, file);
+    const result = await this.criarEntrada.execute(dto, user.userId, file)
 
     if (result.isLeft()) {
-      throw new NotFoundException(result.value.message);
+      throw new NotFoundException(result.value.message)
     }
 
-    return result.value.entrada;
+    return result.value.entrada
   }
 
   @Post('entradas/:id')
@@ -239,9 +265,12 @@ export class EstoqueController {
     @Param('id', ParseIntPipe) id: number,
     @Body() body: Partial<CriarEntradaDto>,
   ) {
-    const existe = await this.repo.findEntradaById(id);
-    if (!existe) throw new NotFoundException(`Entrada #${id} não encontrada`);
-    return this.prisma.stock_entries.update({ where: { id }, data: body as any });
+    const existe = await this.repo.findEntradaById(id)
+    if (!existe) throw new NotFoundException(`Entrada #${id} não encontrada`)
+    return this.prisma.stock_entries.update({
+      where: { id },
+      data: body as any,
+    })
   }
 
   @Delete('entradas/:id')
@@ -249,9 +278,9 @@ export class EstoqueController {
   @RequirePermission('estoque', 'edit')
   @ApiOperation({ summary: 'Excluir entrada (reverte estoqueAtual)' })
   async deleteEntrada(@Param('id', ParseIntPipe) id: number) {
-    const existe = await this.repo.findEntradaById(id);
-    if (!existe) throw new NotFoundException(`Entrada #${id} não encontrada`);
-    await this.repo.excluirEntrada(id);
+    const existe = await this.repo.findEntradaById(id)
+    if (!existe) throw new NotFoundException(`Entrada #${id} não encontrada`)
+    await this.repo.excluirEntrada(id)
   }
 
   // ── Saídas ────────────────────────────────────────────────────────────────
@@ -276,7 +305,15 @@ export class EstoqueController {
     @Query('page') page?: number,
     @Query('limit') limit?: number,
   ) {
-    return this.repo.findSaidas({ produtoId, responsavel, motivo, dataInicio, dataFim, page, limit });
+    return this.repo.findSaidas({
+      produtoId,
+      responsavel,
+      motivo,
+      dataInicio,
+      dataFim,
+      page,
+      limit,
+    })
   }
 
   @Get('saidas/:id')
@@ -284,28 +321,33 @@ export class EstoqueController {
   @RequirePermission('estoque', 'access')
   @ApiOperation({ summary: 'Buscar saída por ID' })
   async findSaida(@Param('id', ParseIntPipe) id: number) {
-    const saida = await this.repo.findSaidaById(id);
-    if (!saida) throw new NotFoundException(`Saída #${id} não encontrada`);
-    return saida;
+    const saida = await this.repo.findSaidaById(id)
+    if (!saida) throw new NotFoundException(`Saída #${id} não encontrada`)
+    return saida
   }
 
   @Post('saidas')
   @HttpCode(201)
   @RequirePermission('estoque', 'edit')
-  @ApiOperation({ summary: 'Registrar saída (valida saldo + transação atômica)' })
-  async createSaida(@Body() dto: CriarSaidaDto, @CurrentUser() user: JwtPayload) {
-    const result = await this.criarSaida.execute(dto, user.userId);
+  @ApiOperation({
+    summary: 'Registrar saída (valida saldo + transação atômica)',
+  })
+  async createSaida(
+    @Body() dto: CriarSaidaDto,
+    @CurrentUser() user: JwtPayload,
+  ) {
+    const result = await this.criarSaida.execute(dto, user.userId)
 
     if (result.isLeft()) {
       switch (result.value.constructor) {
         case SaldoInsuficienteError:
-          throw new BadRequestException(result.value.message);
+          throw new BadRequestException(result.value.message)
         default:
-          throw new NotFoundException(result.value.message);
+          throw new NotFoundException(result.value.message)
       }
     }
 
-    return result.value.saida;
+    return result.value.saida
   }
 
   @Post('saidas/:id')
@@ -316,9 +358,9 @@ export class EstoqueController {
     @Param('id', ParseIntPipe) id: number,
     @Body() body: Partial<CriarSaidaDto>,
   ) {
-    const existe = await this.repo.findSaidaById(id);
-    if (!existe) throw new NotFoundException(`Saída #${id} não encontrada`);
-    return this.prisma.stock_exits.update({ where: { id }, data: body as any });
+    const existe = await this.repo.findSaidaById(id)
+    if (!existe) throw new NotFoundException(`Saída #${id} não encontrada`)
+    return this.prisma.stock_exits.update({ where: { id }, data: body as any })
   }
 
   @Delete('saidas/:id')
@@ -326,9 +368,9 @@ export class EstoqueController {
   @RequirePermission('estoque', 'edit')
   @ApiOperation({ summary: 'Excluir saída (reverte estoqueAtual)' })
   async deleteSaida(@Param('id', ParseIntPipe) id: number) {
-    const existe = await this.repo.findSaidaById(id);
-    if (!existe) throw new NotFoundException(`Saída #${id} não encontrada`);
-    await this.repo.excluirSaida(id);
+    const existe = await this.repo.findSaidaById(id)
+    if (!existe) throw new NotFoundException(`Saída #${id} não encontrada`)
+    await this.repo.excluirSaida(id)
   }
 
   // ── Transferências ────────────────────────────────────────────────────────
@@ -353,7 +395,15 @@ export class EstoqueController {
     @Query('page') page?: number,
     @Query('limit') limit?: number,
   ) {
-    return this.repo.findTransferencias({ produtoId, empresaOrigemId, empresaDestinoId, dataInicio, dataFim, page, limit });
+    return this.repo.findTransferencias({
+      produtoId,
+      empresaOrigemId,
+      empresaDestinoId,
+      dataInicio,
+      dataFim,
+      page,
+      limit,
+    })
   }
 
   @Get('transferencias/:id')
@@ -361,9 +411,10 @@ export class EstoqueController {
   @RequirePermission('estoque', 'access')
   @ApiOperation({ summary: 'Buscar transferência por ID' })
   async findTransferencia(@Param('id', ParseIntPipe) id: number) {
-    const transferencia = await this.repo.findTransferenciaById(id);
-    if (!transferencia) throw new NotFoundException(`Transferência #${id} não encontrada`);
-    return transferencia;
+    const transferencia = await this.repo.findTransferenciaById(id)
+    if (!transferencia)
+      throw new NotFoundException(`Transferência #${id} não encontrada`)
+    return transferencia
   }
 
   @Post('transferencias/:id')
@@ -374,27 +425,36 @@ export class EstoqueController {
     @Param('id', ParseIntPipe) id: number,
     @Body() body: Partial<CriarTransferenciaDto>,
   ) {
-    const existe = await this.repo.findTransferenciaById(id);
-    if (!existe) throw new NotFoundException(`Transferência #${id} não encontrada`);
-    return this.prisma.stock_transfers.update({ where: { id }, data: body as any });
+    const existe = await this.repo.findTransferenciaById(id)
+    if (!existe)
+      throw new NotFoundException(`Transferência #${id} não encontrada`)
+    return this.prisma.stock_transfers.update({
+      where: { id },
+      data: body as any,
+    })
   }
 
   @Post('transferencias')
   @HttpCode(201)
   @RequirePermission('estoque', 'edit')
-  @ApiOperation({ summary: 'Transferir estoque entre filiais (valida saldo na origem)' })
-  async createTransferencia(@Body() dto: CriarTransferenciaDto, @CurrentUser() user: JwtPayload) {
-    const result = await this.criarTransferencia.execute(dto, user.userId);
+  @ApiOperation({
+    summary: 'Transferir estoque entre filiais (valida saldo na origem)',
+  })
+  async createTransferencia(
+    @Body() dto: CriarTransferenciaDto,
+    @CurrentUser() user: JwtPayload,
+  ) {
+    const result = await this.criarTransferencia.execute(dto, user.userId)
 
     if (result.isLeft()) {
       switch (result.value.constructor) {
         case SaldoInsuficienteError:
-          throw new BadRequestException(result.value.message);
+          throw new BadRequestException(result.value.message)
         default:
-          throw new NotFoundException(result.value.message);
+          throw new NotFoundException(result.value.message)
       }
     }
 
-    return result.value.transferencia;
+    return result.value.transferencia
   }
 }

@@ -1,5 +1,5 @@
-import { createZodDto } from 'nestjs-zod';
-import { z } from 'zod';
+import { createZodDto } from 'nestjs-zod'
+import { z } from 'zod'
 
 export const CriarAdiantamentoSchema = z.object({
   data: z.string(),
@@ -10,6 +10,8 @@ export const CriarAdiantamentoSchema = z.object({
   colaboradorId: z.number().int().positive().optional().nullable(),
   userId: z.string().optional().nullable(),
   oculto: z.boolean().default(false),
-});
+})
 
-export class CriarAdiantamentoDto extends createZodDto(CriarAdiantamentoSchema) {}
+export class CriarAdiantamentoDto extends createZodDto(
+  CriarAdiantamentoSchema,
+) {}

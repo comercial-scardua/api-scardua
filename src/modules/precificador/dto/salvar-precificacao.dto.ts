@@ -1,5 +1,5 @@
-import { createZodDto } from 'nestjs-zod';
-import { z } from 'zod';
+import { createZodDto } from 'nestjs-zod'
+import { z } from 'zod'
 
 export const SalvarPrecificacaoSchema = z.object({
   userId: z.string().min(1),
@@ -20,17 +20,19 @@ export const SalvarPrecificacaoSchema = z.object({
   precoFinal: z.number().positive(),
   lucroLiquido: z.number(),
   margemLiquida: z.number(),
-});
+})
 
-export class SalvarPrecificacaoDto extends createZodDto(SalvarPrecificacaoSchema) {}
+export class SalvarPrecificacaoDto extends createZodDto(
+  SalvarPrecificacaoSchema,
+) {}
 
 export const AtualizarPrecoItemSchema = z.object({
   produtoId: z.number().int().positive(),
   preco: z.number().positive(),
-});
+})
 
 export const AtualizarPrecosSchema = z.object({
   itens: z.array(AtualizarPrecoItemSchema).min(1),
-});
+})
 
 export class AtualizarPrecosDto extends createZodDto(AtualizarPrecosSchema) {}

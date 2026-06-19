@@ -1,5 +1,5 @@
-import { createZodDto } from 'nestjs-zod';
-import { z } from 'zod';
+import { createZodDto } from 'nestjs-zod'
+import { z } from 'zod'
 
 export const AtualizarNcmSchema = z.object({
   icms_dentro: z.number().optional(),
@@ -15,6 +15,6 @@ export const AtualizarNcmSchema = z.object({
   mva: z.number().optional(),
   aliquota: z.number().optional(),
   obs_fonte: z.string().optional(),
-});
+})
 
 export class AtualizarNcmDto extends createZodDto(AtualizarNcmSchema) {}

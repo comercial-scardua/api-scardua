@@ -1,5 +1,5 @@
-import { createZodDto } from 'nestjs-zod';
-import { z } from 'zod';
+import { createZodDto } from 'nestjs-zod'
+import { z } from 'zod'
 
 export const ImportarPrecosItemSchema = z.object({
   codigoInterno: z.string().min(1),
@@ -10,10 +10,10 @@ export const ImportarPrecosItemSchema = z.object({
   estoqueMinimo: z.number().int().default(0),
   estoqueAtual: z.number().int().default(0),
   status: z.enum(['ATIVO', 'INATIVO']).default('ATIVO'),
-});
+})
 
 export const ImportarPrecosSchema = z.object({
   produtos: z.array(ImportarPrecosItemSchema).min(1),
-});
+})
 
 export class ImportarPrecosDto extends createZodDto(ImportarPrecosSchema) {}

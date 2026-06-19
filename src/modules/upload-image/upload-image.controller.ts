@@ -6,12 +6,18 @@ import {
   UploadedFile,
   UseGuards,
   UseInterceptors,
-} from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
-import { ApiBearerAuth, ApiBody, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { RequirePermission } from '../../auth/decorators/require-permission.decorator';
-import { PermissionsGuard } from '../../auth/guards/permissions.guard';
-import { SupabaseService } from '../../common/supabase/supabase.service';
+} from '@nestjs/common'
+import { FileInterceptor } from '@nestjs/platform-express'
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiConsumes,
+  ApiOperation,
+  ApiTags,
+} from '@nestjs/swagger'
+import { RequirePermission } from '../../auth/decorators/require-permission.decorator'
+import { PermissionsGuard } from '../../auth/guards/permissions.guard'
+import { SupabaseService } from '../../common/supabase/supabase.service'
 
 @ApiTags('Upload Image')
 @ApiBearerAuth()
@@ -23,7 +29,9 @@ export class UploadImageController {
   @Post()
   @HttpCode(200)
   @RequirePermission('upload-image', 'edit')
-  @UseInterceptors(FileInterceptor('image', { limits: { fileSize: 5 * 1024 * 1024 } }))
+  @UseInterceptors(
+    FileInterceptor('image', { limits: { fileSize: 5 * 1024 * 1024 } }),
+  )
   @ApiOperation({ summary: 'Upload de imagem para o Supabase' })
   @ApiConsumes('multipart/form-data')
   @ApiBody({
@@ -38,12 +46,17 @@ export class UploadImageController {
     @UploadedFile() file: Express.Multer.File,
   ): Promise<{ url: string }> {
     if (!file) {
-      throw new BadRequestException('Arquivo de imagem não enviado');
+      throw new BadRequestException('Arquivo de imagem não enviado')
     }
 
-    const path = `images/${Date.now()}_${file.originalname}`;
-    const url = await this.supabase.upload('uploads', path, file.buffer, file.mimetype);
+    const path = `images/${Date.now()}_${file.originalname}`
+    const url = await this.supabase.upload(
+      'uploads',
+      path,
+      file.buffer,
+      file.mimetype,
+    )
 
-    return { url };
+    return { url }
   }
 }

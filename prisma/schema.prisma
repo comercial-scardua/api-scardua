@@ -1,7 +1,6 @@
 generator client {
-  provider = "prisma-client-js"
-  // Gerar o client na pasta .prisma dentro de node_modules (recomendado).
-  output   = "../node_modules/.prisma/client"
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "rhel-openssl-3.0.x"]
 }
 
 datasource db {
@@ -184,17 +183,16 @@ model colaboradores {
   epiCargoId                           Int?
   epiCargo                             epi_cargos?             @relation("ColaboradorEpiCargo", fields: [epiCargoId], references: [id])
   epiMovimentacoes                     epi_movimentacoes[]
+  uniformeMovimentacoes                uniforme_movimentacoes[]
   isGestor                             Boolean                 @default(false)
-  gestorId                             Int?
-  gestor                               colaboradores? @relation("GestorSubordinados", fields: [gestorId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  subordinados                         colaboradores[]         @relation("GestorSubordinados")
   epiObservacoes                       String?                 @db.Text
   gestorEmpresas                       gestor_empresas[]
+  gestoresRelacao                      colaborador_gestores[]  @relation("ColaboradorSubordinado")
+  subordinadosRelacao                  colaborador_gestores[]  @relation("GestorDoColaborador")
 
   @@index([empresaId])
   @@index([userId])
   @@index([epiCargoId])
-  @@index([gestorId])
 }
 
 model comentarios {
@@ -308,9 +306,10 @@ model empresas {
   contaCorrentes conta_corrente[]
   caixasViagem   caixaviagem[]
   criadoPor               users?                      @relation(fields: [criadoPorId], references: [id])
-  epiMovimentacoes        epi_movimentacoes[]         @relation("EmpresaEpiMovimentacoes")
-  epiEstoqueMovimentacoes epi_estoque_movimentacoes[] @relation("EmpresaEpiEstoqueMovs")
-  epiEstoqueFilial        epi_estoque_filial[]        @relation("EmpresaEpiEstoqueFilial")
+  epiMovimentacoes              epi_movimentacoes[]              @relation("EmpresaEpiMovimentacoes")
+  epiEstoqueMovimentacoes       epi_estoque_movimentacoes[]      @relation("EmpresaEpiEstoqueMovs")
+  epiEstoqueFilial              epi_estoque_filial[]             @relation("EmpresaEpiEstoqueFilial")
+  uniformeMovimentacoes         uniforme_movimentacoes[]         @relation("EmpresaUniformeMovimentacoes")
   gestorEmpresas          gestor_empresas[]
 
   @@index([criadoPorId])
@@ -577,6 +576,7 @@ model ncm {
   ipi               Decimal  @default(0.00) @db.Decimal(10, 2)
   bc_pis_cof        String   @default("") @db.VarChar(10)
   bc_icms           String   @default("") @db.VarChar(10)
+  bc_icms_fora      String   @default("") @db.VarChar(10)
   mva               Decimal  @default(0.00) @db.Decimal(10, 2)
   uf_emissor        String   @db.VarChar(2)
   uf_destino        String   @db.VarChar(2)
@@ -784,6 +784,13 @@ model relatorio_permissions {
   @@index([user_id])
 }
 
+model session {
+  id        Int      @id @default(autoincrement())
+  sessionId String   @db.LongText
+  userId    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime
+}
 
 model sgq_activity_logs {
   id         Int                          @id @default(autoincrement())
@@ -1099,14 +1106,6 @@ model users {
   precificadorHistorico    precificador_historico[]
 }
 
-model session {
-  id        Int      @id @default(autoincrement())
-  sessionId String   @db.LongText
-  userId    String
-  createdAt DateTime @default(now())
-  updatedAt DateTime
-}
-
 model precificador_historico {
   id                Int      @id @default(autoincrement())
   userId            String
@@ -1275,6 +1274,19 @@ enum sgq_non_conformities_status {
   CLOSED
 }
 
+model colaborador_gestores {
+  id                Int            @id @default(autoincrement())
+  colaboradorId     Int
+  gestorId          Int
+  createdAt         DateTime       @default(now())
+  colaborador       colaboradores  @relation("ColaboradorSubordinado", fields: [colaboradorId], references: [id], onDelete: Cascade)
+  gestor            colaboradores  @relation("GestorDoColaborador", fields: [gestorId], references: [id], onDelete: Cascade)
+
+  @@unique([colaboradorId, gestorId])
+  @@index([colaboradorId])
+  @@index([gestorId])
+}
+
 // ─── EPI ────────────────────────────────────────────────────────────────────
 
 enum epi_status {
@@ -1318,12 +1330,15 @@ model epi_cargos {
   id                 Int                     @id @default(autoincrement())
   nome               String                  @db.VarChar(100)
   descricao          String?                 @db.VarChar(255)
+  tipo               epi_cargo_tipo          @default(cargo)
   createdAt          DateTime                @default(now())
   updatedAt          DateTime                @default(now())
   colaboradores      colaboradores[]         @relation("ColaboradorEpiCargo")
-  epis_obrigatorios  epi_cargo_obrigatorio[]
+  epis_obrigatorios       epi_cargo_obrigatorio[]
+  uniformes_obrigatorios  uniforme_cargo_obrigatorio[]
 
   @@index([nome])
+  @@index([tipo])
 }
 
 model epis {
@@ -1429,3 +1444,86 @@ model epi_transferencias {
   @@index([empresaDestinoId])
   @@index([dataTransferencia])
 }
+
+// ─── UNIFORME ────────────────────────────────────────────────────────────────
+
+enum epi_cargo_tipo {
+  cargo
+  departamento
+}
+
+enum uniforme_status {
+  ATIVO
+  INATIVO
+}
+
+enum uniforme_movimentacao_tipo {
+  ENTREGA
+  DEVOLUCAO
+  TROCA
+  PERDA
+  BAIXA
+}
+
+model uniformes {
+  id                  Int                          @id @default(autoincrement())
+  nome                String                       @db.VarChar(255)
+  codigo              String                       @unique @db.VarChar(50)
+  categoria           String                       @db.VarChar(100)
+  tamanho             String?                      @db.VarChar(50)
+  fabricante          String?                      @db.VarChar(255)
+  vida_util_dias      Int                          @default(365)
+  estoque_inicial     Int                          @default(0)
+  estoque_atual       Int                          @default(0)
+  estoque_minimo      Int                          @default(0)
+  status              uniforme_status              @default(ATIVO)
+  observacoes         String?                      @db.Text
+  createdAt           DateTime                     @default(now())
+  updatedAt           DateTime                     @default(now())
+  cargos_obrigatorios uniforme_cargo_obrigatorio[]
+  movimentacoes       uniforme_movimentacoes[]
+
+  @@index([categoria])
+  @@index([status])
+  @@index([codigo])
+}
+
+model uniforme_cargo_obrigatorio {
+  id                       Int        @id @default(autoincrement())
+  cargo_id                 Int
+  uniforme_id              Int
+  periodicidade_troca_dias Int        @default(365)
+  quantidade_padrao        Int        @default(1)
+  obrigatorio              Boolean    @default(true)
+  cargo                    epi_cargos @relation(fields: [cargo_id], references: [id])
+  uniforme                 uniformes  @relation(fields: [uniforme_id], references: [id])
+
+  @@unique([cargo_id, uniforme_id])
+  @@index([cargo_id])
+  @@index([uniforme_id])
+}
+
+model uniforme_movimentacoes {
+  id                Int                        @id @default(autoincrement())
+  colaborador_id    Int
+  uniforme_id       Int
+  tipo              uniforme_movimentacao_tipo
+  quantidade        Int
+  data_movimentacao DateTime
+  responsavel       String                     @db.VarChar(255)
+  proxima_entrega   DateTime?
+  motivo            String?                    @db.VarChar(255)
+  observacoes       String?                    @db.Text
+  empresaId         Int?
+  createdAt         DateTime                   @default(now())
+  colaborador       colaboradores              @relation(fields: [colaborador_id], references: [id])
+  uniforme          uniformes                  @relation(fields: [uniforme_id], references: [id])
+  empresa           empresas?                  @relation("EmpresaUniformeMovimentacoes", fields: [empresaId], references: [id])
+
+  @@index([colaborador_id])
+  @@index([uniforme_id])
+  @@index([empresaId])
+  @@index([data_movimentacao])
+  @@index([proxima_entrega])
+}
+

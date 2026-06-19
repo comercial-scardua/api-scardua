@@ -1,19 +1,13 @@
-import {
-  Body,
-  Controller,
-  HttpCode,
-  Post,
-  UseGuards,
-} from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { RequirePermission } from '../../auth/decorators/require-permission.decorator';
-import { PermissionsGuard } from '../../auth/guards/permissions.guard';
-import { PrismaService } from '../../prisma/prisma.service';
+import { Body, Controller, HttpCode, Post, UseGuards } from '@nestjs/common'
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger'
+import { RequirePermission } from '../../auth/decorators/require-permission.decorator'
+import { PermissionsGuard } from '../../auth/guards/permissions.guard'
+import { PrismaService } from '../../prisma/prisma.service'
 
 interface RunQueryBody {
-  relatorioId?: number;
-  sql?: string;
-  parametros?: Record<string, unknown>;
+  relatorioId?: number
+  sql?: string
+  parametros?: Record<string, unknown>
 }
 
 @ApiTags('Reports')
@@ -28,16 +22,16 @@ export class ReportsController {
   @RequirePermission('reports', 'access')
   @ApiOperation({ summary: 'Executar query de relatório via Oracle bridge' })
   async runQuery(@Body() body: RunQueryBody) {
-    const { relatorioId, sql, parametros } = body;
+    const { relatorioId, sql, parametros } = body
 
     let relatorio: {
-      id: number;
-      nome: string;
-      query_sql: string;
-      banco_dados: string;
-      departamento: string;
-      descricao: string | null;
-    } | null = null;
+      id: number
+      nome: string
+      query_sql: string
+      banco_dados: string
+      departamento: string
+      descricao: string | null
+    } | null = null
 
     if (relatorioId !== undefined && relatorioId !== null) {
       relatorio = await this.prisma.relatorios.findUnique({
@@ -50,16 +44,16 @@ export class ReportsController {
           departamento: true,
           descricao: true,
         },
-      });
+      })
     }
 
-    const effectiveSql = relatorio?.query_sql ?? sql ?? null;
+    const effectiveSql = relatorio?.query_sql ?? sql ?? null
 
     return {
       sql: effectiveSql,
       parametros: parametros ?? null,
       message: 'Execute via Oracle bridge',
       relatorio: relatorio ?? null,
-    };
+    }
   }
 }

@@ -249,6 +249,15 @@ export class BancoHorasController {
   async obterHorasUsuario(@CurrentUser() user: JwtPayload) {
     const colaborador = await this.prisma.colaboradores.findFirst({
       where: { userId: user.userId, oculto: false },
+      select: {
+        id: true,
+        nome: true,
+        sobrenome: true,
+        cpf: true,
+        cargo: true,
+        setor: true,
+        email: true,
+      },
     })
 
     if (!colaborador) {
@@ -291,6 +300,7 @@ export class BancoHorasController {
 
     const colaborador = await this.prisma.colaboradores.findUnique({
       where: { id: colaboradorId },
+      select: { id: true, nome: true, sobrenome: true, cpf: true, cargo: true },
     })
 
     if (!colaborador)
@@ -588,6 +598,7 @@ export class BancoHorasController {
     const colaboradorIds = [...new Set(registros.map((r) => r.colaborador_id))]
     const colaboradores = await this.prisma.colaboradores.findMany({
       where: { id: { in: colaboradorIds } },
+      select: { id: true, nome: true, sobrenome: true, cpf: true, cargo: true },
     })
 
     const colaboradoresMap = new Map(colaboradores.map((c) => [c.id, c]))
@@ -676,7 +687,7 @@ export class BancoHorasController {
       [
         this.prisma.registros_banco_horas.count(),
         this.prisma.conta_corrente_horas.count(),
-        this.prisma.colaboradores.count({ where: { oculto: false }}),
+        this.prisma.colaboradores.count({ where: { oculto: false } }),
       ],
     )
 
@@ -699,7 +710,12 @@ export class BancoHorasController {
   async sincronizar() {
     const colaboradores = await this.prisma.colaboradores.findMany({
       where: { oculto: false },
-      include: { registrosBancoHoras: true },
+      select: {
+        id: true,
+        nome: true,
+        sobrenome: true,
+        registrosBancoHoras: true,
+      },
     })
 
     let sincronizados = 0
@@ -844,7 +860,7 @@ export class BancoHorasController {
     const [registros, contas, colaboradores] = await Promise.all([
       this.prisma.registros_banco_horas.count(),
       this.prisma.conta_corrente_horas.count(),
-      this.prisma.colaboradores.count({ where: { oculto: false }}),
+      this.prisma.colaboradores.count({ where: { oculto: false } }),
     ])
 
     const registrosSemHoras = await this.prisma.registros_banco_horas.count({

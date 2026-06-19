@@ -235,8 +235,11 @@ export class EpiController {
   @RequirePermission('epi', 'access')
   @ApiOperation({ summary: 'Buscar vínculo EPI × Cargo por ID' })
   async findCargoEpiLinkById(@Param('id', ParseIntPipe) id: number) {
-    const link = await this.prisma.epi_cargo_obrigatorio.findUnique({ where: { id } })
-    if (!link) throw new NotFoundException(`Vínculo EPI × Cargo #${id} não encontrado`)
+    const link = await this.prisma.epi_cargo_obrigatorio.findUnique({
+      where: { id },
+    })
+    if (!link)
+      throw new NotFoundException(`Vínculo EPI × Cargo #${id} não encontrado`)
     return link
   }
 
@@ -273,9 +276,17 @@ export class EpiController {
   async findColaboradorById(@Param('id', ParseIntPipe) id: number) {
     const colaborador = await this.prisma.colaboradores.findUnique({
       where: { id },
-      select: { id: true, nome: true, sobrenome: true, cargo: true, empresa: true, oculto: true },
+      select: {
+        id: true,
+        nome: true,
+        sobrenome: true,
+        cargo: true,
+        empresa: { select: { id: true, nomeEmpresa: true, numero: true } },
+        oculto: true,
+      },
     })
-    if (!colaborador) throw new NotFoundException(`Colaborador #${id} não encontrado`)
+    if (!colaborador)
+      throw new NotFoundException(`Colaborador #${id} não encontrado`)
     const movimentacoes = await this.repo.findMovimentacoesByColaborador(id)
     return { ...colaborador, movimentacoes }
   }
@@ -304,12 +315,17 @@ export class EpiController {
   @Post('movimentacoes/colaborador/:id')
   @HttpCode(201)
   @RequirePermission('epi', 'edit')
-  @ApiOperation({ summary: 'Registrar movimentação para um colaborador específico' })
+  @ApiOperation({
+    summary: 'Registrar movimentação para um colaborador específico',
+  })
   async createMovimentacaoForColaborador(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: CriarMovimentacaoEpiDto,
   ) {
-    const result = await this.criarMovimentacao.execute({ ...dto, colaborador_id: id })
+    const result = await this.criarMovimentacao.execute({
+      ...dto,
+      colaborador_id: id,
+    })
     if (result.isLeft()) throw new BadRequestException(result.value.message)
     return result.value.movimentacao
   }
@@ -396,8 +412,13 @@ export class EpiController {
   @RequirePermission('epi', 'access')
   @ApiOperation({ summary: 'Buscar movimentação de estoque por ID' })
   async findEstoqueById(@Param('id', ParseIntPipe) id: number) {
-    const item = await this.prisma.epi_estoque_movimentacoes.findUnique({ where: { id } })
-    if (!item) throw new NotFoundException(`Movimentação de estoque #${id} não encontrada`)
+    const item = await this.prisma.epi_estoque_movimentacoes.findUnique({
+      where: { id },
+    })
+    if (!item)
+      throw new NotFoundException(
+        `Movimentação de estoque #${id} não encontrada`,
+      )
     return item
   }
 
@@ -529,8 +550,11 @@ export class EpiController {
   @RequirePermission('epi', 'access')
   @ApiOperation({ summary: 'Buscar transferência por ID' })
   async findTransferenciaById(@Param('id', ParseIntPipe) id: number) {
-    const item = await this.prisma.epi_transferencias.findUnique({ where: { id } })
-    if (!item) throw new NotFoundException(`Transferência #${id} não encontrada`)
+    const item = await this.prisma.epi_transferencias.findUnique({
+      where: { id },
+    })
+    if (!item)
+      throw new NotFoundException(`Transferência #${id} não encontrada`)
     return item
   }
 

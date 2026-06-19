@@ -1,5 +1,5 @@
-import { Module } from '@nestjs/common';
-import { NcmCheckController } from './ncm-check.controller';
+import { Module } from '@nestjs/common'
+import { NcmCheckController } from './ncm-check.controller'
 
 @Module({
   controllers: [NcmCheckController],

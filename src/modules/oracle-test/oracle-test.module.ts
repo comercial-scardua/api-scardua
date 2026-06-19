@@ -1,5 +1,5 @@
-import { Module } from '@nestjs/common';
-import { OracleTestController } from './oracle-test.controller';
+import { Module } from '@nestjs/common'
+import { OracleTestController } from './oracle-test.controller'
 
 @Module({
   controllers: [OracleTestController],

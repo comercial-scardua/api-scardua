@@ -1,22 +1,25 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '../../../prisma/prisma.service';
-import type { CriarLancamentoViagemDto, LancamentoViagemBulkDto } from '../dto/criar-lancamento-viagem.dto';
+import { Injectable, NotFoundException } from '@nestjs/common'
+import { PrismaService } from '../../../prisma/prisma.service'
+import type {
+  CriarLancamentoViagemDto,
+  LancamentoViagemBulkDto,
+} from '../dto/criar-lancamento-viagem.dto'
 
 @Injectable()
 export class LancamentoViagemRepository {
   constructor(private prisma: PrismaService) {}
 
   findAll(filters: { caixaId?: number; tipo?: string; userId?: string }) {
-    const where: Record<string, unknown> = {};
+    const where: Record<string, unknown> = {}
 
     if (filters.caixaId !== undefined) {
-      where['caixaViagemId'] = filters.caixaId;
+      where['caixaViagemId'] = filters.caixaId
     }
 
     // viagemlancamento doesn't have a tipo field — filter by custo as a proxy if needed
     // userId filter requires join through caixaviagem
     if (filters.userId !== undefined) {
-      where['caixaViagem'] = { userId: filters.userId };
+      where['caixaViagem'] = { userId: filters.userId }
     }
 
     return this.prisma.viagemlancamento.findMany({
@@ -27,21 +30,31 @@ export class LancamentoViagemRepository {
         },
       },
       orderBy: { data: 'desc' },
-    });
+    })
   }
 
   async createBulk(dto: LancamentoViagemBulkDto) {
     if (dto.clearExisting && dto.caixaViagemId) {
       await this.prisma.viagemlancamento.deleteMany({
         where: { caixaViagemId: dto.caixaViagemId },
-      });
+      })
     }
 
     const items = dto.lancamentos?.length
       ? dto.lancamentos
       : dto.data && dto.custo && dto.clienteFornecedor
-        ? [{ data: dto.data, custo: dto.custo, clienteFornecedor: dto.clienteFornecedor, entrada: dto.entrada, saida: dto.saida, numeroDocumento: dto.numeroDocumento, historicoDoc: dto.historicoDoc }]
-        : [];
+        ? [
+            {
+              data: dto.data,
+              custo: dto.custo,
+              clienteFornecedor: dto.clienteFornecedor,
+              entrada: dto.entrada,
+              saida: dto.saida,
+              numeroDocumento: dto.numeroDocumento,
+              historicoDoc: dto.historicoDoc,
+            },
+          ]
+        : []
 
     const criados = await Promise.all(
       items.map((item) =>
@@ -59,27 +72,30 @@ export class LancamentoViagemRepository {
           },
         }),
       ),
-    );
+    )
 
     return {
       success: true,
       message: `${criados.length} lançamento(s) criado(s)`,
       lancamentos: criados,
-    };
+    }
   }
 
-  async createBulkForColaborador(colaboradorId: number, dto: LancamentoViagemBulkDto) {
+  async createBulkForColaborador(
+    colaboradorId: number,
+    dto: LancamentoViagemBulkDto,
+  ) {
     const caixa = await this.prisma.caixaviagem.findFirst({
       where: { funcionarioId: colaboradorId, oculto: false },
       orderBy: { data: 'desc' },
-    });
+    })
 
     if (!caixa)
       throw new NotFoundException(
         `Caixa viagem ativo para colaborador #${colaboradorId} não encontrado`,
-      );
+      )
 
-    return this.createBulk({ ...dto, caixaViagemId: caixa.id });
+    return this.createBulk({ ...dto, caixaViagemId: caixa.id })
   }
 
   create(dto: CriarLancamentoViagemDto) {
@@ -95,18 +111,18 @@ export class LancamentoViagemRepository {
         historicoDoc: dto.historicoDoc ?? null,
         updatedAt: new Date(),
       },
-    });
+    })
   }
 
   async findByColaboradorId(colaboradorId: number) {
     const caixas = await this.prisma.caixaviagem.findMany({
       where: { funcionarioId: colaboradorId },
       select: { id: true },
-    });
+    })
 
-    if (caixas.length === 0) return [];
+    if (caixas.length === 0) return []
 
-    const caixaIds = caixas.map((c) => c.id);
+    const caixaIds = caixas.map((c) => c.id)
 
     return this.prisma.viagemlancamento.findMany({
       where: { caixaViagemId: { in: caixaIds } },
@@ -116,7 +132,7 @@ export class LancamentoViagemRepository {
         },
       },
       orderBy: { data: 'desc' },
-    });
+    })
   }
 
   async createForColaborador(
@@ -126,12 +142,12 @@ export class LancamentoViagemRepository {
     const caixa = await this.prisma.caixaviagem.findFirst({
       where: { funcionarioId: colaboradorId, oculto: false },
       orderBy: { data: 'desc' },
-    });
+    })
 
     if (!caixa)
       throw new NotFoundException(
         `Caixa viagem ativo para colaborador #${colaboradorId} não encontrado`,
-      );
+      )
 
     return this.prisma.viagemlancamento.create({
       data: {
@@ -145,6 +161,6 @@ export class LancamentoViagemRepository {
         historicoDoc: dto.historicoDoc ?? null,
         updatedAt: new Date(),
       },
-    });
+    })
   }
 }

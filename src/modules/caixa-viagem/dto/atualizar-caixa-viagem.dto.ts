@@ -1,5 +1,5 @@
-import { createZodDto } from 'nestjs-zod';
-import { z } from 'zod';
+import { createZodDto } from 'nestjs-zod'
+import { z } from 'zod'
 
 export const AtualizarCaixaViagemSchema = z.object({
   destino: z.string().min(1).optional(),
@@ -12,6 +12,8 @@ export const AtualizarCaixaViagemSchema = z.object({
   saldoAnterior: z.number().optional(),
   oculto: z.boolean().optional(),
   userId: z.string().optional().nullable(),
-});
+})
 
-export class AtualizarCaixaViagemDto extends createZodDto(AtualizarCaixaViagemSchema) {}
+export class AtualizarCaixaViagemDto extends createZodDto(
+  AtualizarCaixaViagemSchema,
+) {}

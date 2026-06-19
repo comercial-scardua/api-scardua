@@ -14,7 +14,8 @@ export class ToggleStatusEpiUseCase {
     const existe = await this.repo.findEpiById(id)
     if (!existe) return left(new EpiNaoEncontradoError(id))
 
-    const novoStatus = existe.status === 'ATIVO' ? ('INATIVO' as const) : ('ATIVO' as const)
+    const novoStatus =
+      existe.status === 'ATIVO' ? ('INATIVO' as const) : ('ATIVO' as const)
     const epi = await this.repo.updateEpi(id, { status: novoStatus } as any)
     return right({ epi })
   }

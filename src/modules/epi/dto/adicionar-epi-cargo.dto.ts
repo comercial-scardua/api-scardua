@@ -8,4 +8,6 @@ export const AdicionarEpiCargoSchema = z.object({
   obrigatorio: z.boolean().default(true),
 })
 
-export class AdicionarEpiCargoDto extends createZodDto(AdicionarEpiCargoSchema) {}
+export class AdicionarEpiCargoDto extends createZodDto(
+  AdicionarEpiCargoSchema,
+) {}

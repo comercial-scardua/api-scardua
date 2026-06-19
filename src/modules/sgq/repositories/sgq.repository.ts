@@ -57,7 +57,8 @@ export class SgqRepository {
         ownerId: data.ownerId,
         ownerName: data.ownerName,
         currentVersion: data.currentVersion ?? '1.0',
-        status: (data.status as sgq_documents_status) ?? sgq_documents_status.DRAFT,
+        status:
+          (data.status as sgq_documents_status) ?? sgq_documents_status.DRAFT,
         issueDate: data.issueDate,
         reviewDate: data.reviewDate,
         fileUrl: data.fileUrl,
@@ -123,8 +124,10 @@ export class SgqRepository {
   }) {
     const where: any = {}
 
-    if (filters.status) where.status = filters.status as sgq_non_conformities_status
-    if (filters.origin) where.origin = filters.origin as sgq_non_conformities_origin
+    if (filters.status)
+      where.status = filters.status as sgq_non_conformities_status
+    if (filters.origin)
+      where.origin = filters.origin as sgq_non_conformities_origin
     if (filters.processId) where.processId = filters.processId
 
     return this.prisma.sgq_non_conformities.findMany({
@@ -147,7 +150,9 @@ export class SgqRepository {
         openingDate: data.openingDate ?? new Date(),
         deadline: data.deadline,
         closureDate: data.closureDate,
-        status: (data.status as sgq_non_conformities_status) ?? sgq_non_conformities_status.OPEN,
+        status:
+          (data.status as sgq_non_conformities_status) ??
+          sgq_non_conformities_status.OPEN,
         rootCauseAnalysis: data.rootCauseAnalysis,
         immediateAction: data.immediateAction,
         evidenceFiles: data.evidenceFiles,

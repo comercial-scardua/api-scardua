@@ -1,10 +1,14 @@
-import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../../../prisma/prisma.service';
-import type { CriarEntradaDto } from '../dto/criar-entrada.dto';
-import type { CriarProdutoDto } from '../dto/criar-produto.dto';
-import type { CriarSaidaDto } from '../dto/criar-saida.dto';
-import type { CriarTransferenciaDto } from '../dto/criar-transferencia.dto';
-import type { EstoqueRepository, FiltrosPagina, SaldoFilial } from './estoque.repository';
+import { Injectable } from '@nestjs/common'
+import { PrismaService } from '../../../prisma/prisma.service'
+import type { CriarEntradaDto } from '../dto/criar-entrada.dto'
+import type { CriarProdutoDto } from '../dto/criar-produto.dto'
+import type { CriarSaidaDto } from '../dto/criar-saida.dto'
+import type { CriarTransferenciaDto } from '../dto/criar-transferencia.dto'
+import type {
+  EstoqueRepository,
+  FiltrosPagina,
+  SaldoFilial,
+} from './estoque.repository'
 
 @Injectable()
 export class PrismaEstoqueRepository implements EstoqueRepository {
@@ -12,70 +16,113 @@ export class PrismaEstoqueRepository implements EstoqueRepository {
 
   // ── Produtos ──────────────────────────────────────────────────────────────
 
-  async findProdutos({ search, categoria, status, page = 1, limit = 10 }: { search?: string; categoria?: string; status?: string } & FiltrosPagina) {
+  async findProdutos({
+    search,
+    categoria,
+    status,
+    page = 1,
+    limit = 10,
+  }: { search?: string; categoria?: string; status?: string } & FiltrosPagina) {
     const where = {
       ...(categoria && { categoria }),
       ...(status && { status: status as 'ATIVO' | 'INATIVO' }),
-      ...(search && { OR: [{ codigoInterno: { contains: search } }, { nome: { contains: search } }] }),
-    };
+      ...(search && {
+        OR: [
+          { codigoInterno: { contains: search } },
+          { nome: { contains: search } },
+        ],
+      }),
+    }
 
     const [data, total] = await this.prisma.$transaction([
-      this.prisma.products.findMany({ where, skip: (page - 1) * limit, take: limit, orderBy: { nome: 'asc' } }),
+      this.prisma.products.findMany({
+        where,
+        skip: (page - 1) * limit,
+        take: limit,
+        orderBy: { nome: 'asc' },
+      }),
       this.prisma.products.count({ where }),
-    ]);
+    ])
 
-    return { data, total, pages: Math.ceil(total / limit) };
+    return { data, total, pages: Math.ceil(total / limit) }
   }
 
   findProdutoById(id: number) {
-    return this.prisma.products.findUnique({ where: { id } });
+    return this.prisma.products.findUnique({ where: { id } })
   }
 
   findProdutoByCodigo(codigo: string) {
-    return this.prisma.products.findUnique({ where: { codigoInterno: codigo } });
+    return this.prisma.products.findUnique({ where: { codigoInterno: codigo } })
   }
 
   criarProduto(data: CriarProdutoDto, _userId: string) {
     return this.prisma.products.create({
       data: { ...data, estoqueAtual: 0 },
-    });
+    })
   }
 
   atualizarProduto(id: number, data: Partial<CriarProdutoDto>) {
-    return this.prisma.products.update({ where: { id }, data });
+    return this.prisma.products.update({ where: { id }, data })
   }
 
   desativarProduto(id: number) {
-    return this.prisma.products.update({ where: { id }, data: { status: 'INATIVO' } });
+    return this.prisma.products.update({
+      where: { id },
+      data: { status: 'INATIVO' },
+    })
   }
 
   // ── Entradas ──────────────────────────────────────────────────────────────
 
-  async findEntradas({ produtoId, numeroNotaFiscal, dataInicio, dataFim, page = 1, limit = 10 }: { produtoId?: number; numeroNotaFiscal?: string; dataInicio?: string; dataFim?: string } & FiltrosPagina) {
+  async findEntradas({
+    produtoId,
+    numeroNotaFiscal,
+    dataInicio,
+    dataFim,
+    page = 1,
+    limit = 10,
+  }: {
+    produtoId?: number
+    numeroNotaFiscal?: string
+    dataInicio?: string
+    dataFim?: string
+  } & FiltrosPagina) {
     const where = {
       ...(produtoId && { produtoId }),
-      ...(numeroNotaFiscal && { numeroNotaFiscal: { contains: numeroNotaFiscal } }),
-      ...(dataInicio && dataFim && {
-        dataEntrada: {
-          gte: new Date(dataInicio),
-          lte: new Date(`${dataFim}T23:59:59`),
-        },
+      ...(numeroNotaFiscal && {
+        numeroNotaFiscal: { contains: numeroNotaFiscal },
       }),
-    };
+      ...(dataInicio &&
+        dataFim && {
+          dataEntrada: {
+            gte: new Date(dataInicio),
+            lte: new Date(`${dataFim}T23:59:59`),
+          },
+        }),
+    }
 
     const [data, total] = await this.prisma.$transaction([
-      this.prisma.stock_entries.findMany({ where, skip: (page - 1) * limit, take: limit, orderBy: { dataEntrada: 'desc' } }),
+      this.prisma.stock_entries.findMany({
+        where,
+        skip: (page - 1) * limit,
+        take: limit,
+        orderBy: { dataEntrada: 'desc' },
+      }),
       this.prisma.stock_entries.count({ where }),
-    ]);
+    ])
 
-    return { data, total, pages: Math.ceil(total / limit) };
+    return { data, total, pages: Math.ceil(total / limit) }
   }
 
   findEntradaById(id: number) {
-    return this.prisma.stock_entries.findUnique({ where: { id } });
+    return this.prisma.stock_entries.findUnique({ where: { id } })
   }
 
-  async criarEntrada(data: CriarEntradaDto, userId: string, arquivoUrl?: string) {
+  async criarEntrada(
+    data: CriarEntradaDto,
+    userId: string,
+    arquivoUrl?: string,
+  ) {
     const [entrada] = await this.prisma.$transaction([
       this.prisma.stock_entries.create({
         data: {
@@ -93,47 +140,67 @@ export class PrismaEstoqueRepository implements EstoqueRepository {
         where: { id: data.produtoId },
         data: { estoqueAtual: { increment: data.quantidade } },
       }),
-    ]);
-    return entrada;
+    ])
+    return entrada
   }
 
   async excluirEntrada(id: number): Promise<void> {
-    const entrada = await this.findEntradaById(id);
-    if (!entrada) return;
+    const entrada = await this.findEntradaById(id)
+    if (!entrada) return
     await this.prisma.$transaction([
       this.prisma.stock_entries.delete({ where: { id } }),
       this.prisma.products.update({
         where: { id: entrada.produtoId },
         data: { estoqueAtual: { decrement: entrada.quantidade } },
       }),
-    ]);
+    ])
   }
 
   // ── Saídas ────────────────────────────────────────────────────────────────
 
-  async findSaidas({ produtoId, responsavel, motivo, dataInicio, dataFim, page = 1, limit = 10 }: { produtoId?: number; responsavel?: string; motivo?: string; dataInicio?: string; dataFim?: string } & FiltrosPagina) {
+  async findSaidas({
+    produtoId,
+    responsavel,
+    motivo,
+    dataInicio,
+    dataFim,
+    page = 1,
+    limit = 10,
+  }: {
+    produtoId?: number
+    responsavel?: string
+    motivo?: string
+    dataInicio?: string
+    dataFim?: string
+  } & FiltrosPagina) {
     const where = {
       ...(produtoId && { produtoId }),
       ...(responsavel && { responsavel: { contains: responsavel } }),
       ...(motivo && { motivo }),
-      ...(dataInicio && dataFim && {
-        dataSaida: {
-          gte: new Date(dataInicio),
-          lte: new Date(`${dataFim}T23:59:59`),
-        },
-      }),
-    };
+      ...(dataInicio &&
+        dataFim && {
+          dataSaida: {
+            gte: new Date(dataInicio),
+            lte: new Date(`${dataFim}T23:59:59`),
+          },
+        }),
+    }
 
     const [data, total] = await this.prisma.$transaction([
-      this.prisma.stock_exits.findMany({ where, skip: (page - 1) * limit, take: limit, orderBy: { dataSaida: 'desc' } }),
+      this.prisma.stock_exits.findMany({
+        where,
+        skip: (page - 1) * limit,
+        take: limit,
+        orderBy: { dataSaida: 'desc' },
+      }),
       this.prisma.stock_exits.count({ where }),
-    ]);
+    ])
 
-    return { data, total, pages: Math.ceil(total / limit) };
+    return { data, total, pages: Math.ceil(total / limit) }
   }
 
   findSaidaById(id: number) {
-    return this.prisma.stock_exits.findUnique({ where: { id } });
+    return this.prisma.stock_exits.findUnique({ where: { id } })
   }
 
   async criarSaida(data: CriarSaidaDto, userId: string) {
@@ -154,47 +221,67 @@ export class PrismaEstoqueRepository implements EstoqueRepository {
         where: { id: data.produtoId },
         data: { estoqueAtual: { decrement: data.quantidade } },
       }),
-    ]);
-    return saida;
+    ])
+    return saida
   }
 
   async excluirSaida(id: number): Promise<void> {
-    const saida = await this.findSaidaById(id);
-    if (!saida) return;
+    const saida = await this.findSaidaById(id)
+    if (!saida) return
     await this.prisma.$transaction([
       this.prisma.stock_exits.delete({ where: { id } }),
       this.prisma.products.update({
         where: { id: saida.produtoId },
         data: { estoqueAtual: { increment: saida.quantidade } },
       }),
-    ]);
+    ])
   }
 
   // ── Transferências ────────────────────────────────────────────────────────
 
-  async findTransferencias({ produtoId, empresaOrigemId, empresaDestinoId, dataInicio, dataFim, page = 1, limit = 10 }: { produtoId?: number; empresaOrigemId?: number; empresaDestinoId?: number; dataInicio?: string; dataFim?: string } & FiltrosPagina) {
+  async findTransferencias({
+    produtoId,
+    empresaOrigemId,
+    empresaDestinoId,
+    dataInicio,
+    dataFim,
+    page = 1,
+    limit = 10,
+  }: {
+    produtoId?: number
+    empresaOrigemId?: number
+    empresaDestinoId?: number
+    dataInicio?: string
+    dataFim?: string
+  } & FiltrosPagina) {
     const where = {
       ...(produtoId && { produtoId }),
       ...(empresaOrigemId && { empresaOrigemId }),
       ...(empresaDestinoId && { empresaDestinoId }),
-      ...(dataInicio && dataFim && {
-        dataTransferencia: {
-          gte: new Date(dataInicio),
-          lte: new Date(`${dataFim}T23:59:59`),
-        },
-      }),
-    };
+      ...(dataInicio &&
+        dataFim && {
+          dataTransferencia: {
+            gte: new Date(dataInicio),
+            lte: new Date(`${dataFim}T23:59:59`),
+          },
+        }),
+    }
 
     const [data, total] = await this.prisma.$transaction([
-      this.prisma.stock_transfers.findMany({ where, skip: (page - 1) * limit, take: limit, orderBy: { dataTransferencia: 'desc' } }),
+      this.prisma.stock_transfers.findMany({
+        where,
+        skip: (page - 1) * limit,
+        take: limit,
+        orderBy: { dataTransferencia: 'desc' },
+      }),
       this.prisma.stock_transfers.count({ where }),
-    ]);
+    ])
 
-    return { data, total, pages: Math.ceil(total / limit) };
+    return { data, total, pages: Math.ceil(total / limit) }
   }
 
   findTransferenciaById(id: number) {
-    return this.prisma.stock_transfers.findUnique({ where: { id } });
+    return this.prisma.stock_transfers.findUnique({ where: { id } })
   }
 
   async criarTransferencia(data: CriarTransferenciaDto, userId: string) {
@@ -233,20 +320,23 @@ export class PrismaEstoqueRepository implements EstoqueRepository {
           createdBy: userId,
         },
       }),
-    ]);
+    ])
 
     // Atualiza os links da transferência após criar os registros
     await this.prisma.stock_transfers.update({
       where: { id: transferencia.id },
       data: { saidaId: saida.id, entradaId: entrada.id },
-    });
+    })
 
-    return transferencia;
+    return transferencia
   }
 
   // ── Saldos por filial (SQL raw — UNION entradas e saídas) ─────────────────
 
-  async saldoFiliais(produtoId?: number, empresaId?: number): Promise<SaldoFilial> {
+  async saldoFiliais(
+    produtoId?: number,
+    empresaId?: number,
+  ): Promise<SaldoFilial> {
     const rows = await this.prisma.$queryRaw<
       { produtoId: number; empresaId: number; saldo: number }[]
     >`
@@ -266,17 +356,20 @@ export class PrismaEstoqueRepository implements EstoqueRepository {
           ${empresaId ? this.prisma.$queryRaw`AND empresaId = ${empresaId}` : this.prisma.$queryRaw``}
       ) AS movimentos
       GROUP BY produtoId, empresaId
-    `;
+    `
 
-    const result: SaldoFilial = {};
+    const result: SaldoFilial = {}
     for (const row of rows) {
-      if (!result[row.produtoId]) result[row.produtoId] = {};
-      result[row.produtoId][row.empresaId] = Number(row.saldo);
+      if (!result[row.produtoId]) result[row.produtoId] = {}
+      result[row.produtoId][row.empresaId] = Number(row.saldo)
     }
-    return result;
+    return result
   }
 
-  async saldoProdutoNaFilial(produtoId: number, empresaId: number): Promise<number> {
+  async saldoProdutoNaFilial(
+    produtoId: number,
+    empresaId: number,
+  ): Promise<number> {
     const rows = await this.prisma.$queryRaw<{ saldo: number }[]>`
       SELECT
         SUM(CASE WHEN tipo = 'entrada' THEN quantidade ELSE -quantidade END) AS saldo
@@ -287,8 +380,8 @@ export class PrismaEstoqueRepository implements EstoqueRepository {
         SELECT quantidade, 'saida' AS tipo FROM stock_exits
           WHERE produtoId = ${produtoId} AND empresaId = ${empresaId}
       ) AS movimentos
-    `;
-    return Number(rows[0]?.saldo ?? 0);
+    `
+    return Number(rows[0]?.saldo ?? 0)
   }
 
   // ── Empresas ──────────────────────────────────────────────────────────────
@@ -298,15 +391,15 @@ export class PrismaEstoqueRepository implements EstoqueRepository {
       where: { oculto: false },
       select: { id: true, nomeEmpresa: true, cnpj: true, cidade: true },
       orderBy: { nomeEmpresa: 'asc' },
-    });
+    })
   }
 
   // ── Dashboard ─────────────────────────────────────────────────────────────
 
   async dashboard() {
-    const inicioMes = new Date();
-    inicioMes.setDate(1);
-    inicioMes.setHours(0, 0, 0, 0);
+    const inicioMes = new Date()
+    inicioMes.setDate(1)
+    inicioMes.setHours(0, 0, 0, 0)
 
     const [
       totalProdutos,
@@ -320,21 +413,36 @@ export class PrismaEstoqueRepository implements EstoqueRepository {
     ] = await Promise.all([
       this.prisma.products.count(),
       this.prisma.products.count({ where: { status: 'ATIVO' } }),
-      this.prisma.products.findMany({ where: { status: 'ATIVO' }, select: { estoqueAtual: true, estoqueMinimo: true } }),
-      this.prisma.stock_entries.count({ where: { dataEntrada: { gte: inicioMes } } }),
-      this.prisma.stock_exits.count({ where: { dataSaida: { gte: inicioMes } } }),
-      this.prisma.stock_entries.aggregate({ where: { dataEntrada: { gte: inicioMes } }, _sum: { quantidade: true } }),
-      this.prisma.stock_exits.aggregate({ where: { dataSaida: { gte: inicioMes } }, _sum: { quantidade: true } }),
+      this.prisma.products.findMany({
+        where: { status: 'ATIVO' },
+        select: { estoqueAtual: true, estoqueMinimo: true },
+      }),
+      this.prisma.stock_entries.count({
+        where: { dataEntrada: { gte: inicioMes } },
+      }),
+      this.prisma.stock_exits.count({
+        where: { dataSaida: { gte: inicioMes } },
+      }),
+      this.prisma.stock_entries.aggregate({
+        where: { dataEntrada: { gte: inicioMes } },
+        _sum: { quantidade: true },
+      }),
+      this.prisma.stock_exits.aggregate({
+        where: { dataSaida: { gte: inicioMes } },
+        _sum: { quantidade: true },
+      }),
       this.prisma.products.findMany({
         where: { status: 'ATIVO' },
         orderBy: { estoqueAtual: 'asc' },
         take: 10,
       }),
-    ]);
+    ])
 
-    const produtosAbaixoMinimo = todos.filter((p) => p.estoqueAtual < p.estoqueMinimo).length;
-    const entUnid = totalEntradasUnidades._sum.quantidade ?? 0;
-    const saiUnid = totalSaidasUnidades._sum.quantidade ?? 0;
+    const produtosAbaixoMinimo = todos.filter(
+      (p) => p.estoqueAtual < p.estoqueMinimo,
+    ).length
+    const entUnid = totalEntradasUnidades._sum.quantidade ?? 0
+    const saiUnid = totalSaidasUnidades._sum.quantidade ?? 0
 
     return {
       resumo: { totalProdutos, produtosAtivos, produtosAbaixoMinimo },
@@ -345,7 +453,9 @@ export class PrismaEstoqueRepository implements EstoqueRepository {
         totalSaidasUnidades: saiUnid,
         saldoLiquidoUnidades: entUnid - saiUnid,
       },
-      produtosCriticos: produtosCriticos.filter((p) => p.estoqueAtual < p.estoqueMinimo),
-    };
+      produtosCriticos: produtosCriticos.filter(
+        (p) => p.estoqueAtual < p.estoqueMinimo,
+      ),
+    }
   }
 }

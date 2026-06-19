@@ -1,6 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '../../../prisma/prisma.service';
-import type { CriarLancamentoDto, LancamentoBulkDto } from '../dto/criar-lancamento.dto';
+import { Injectable, NotFoundException } from '@nestjs/common'
+import { PrismaService } from '../../../prisma/prisma.service'
+import type {
+  CriarLancamentoDto,
+  LancamentoBulkDto,
+} from '../dto/criar-lancamento.dto'
 
 @Injectable()
 export class LancamentoRepository {
@@ -17,34 +20,42 @@ export class LancamentoRepository {
         debito: dto.debito ?? null,
         updatedAt: new Date(),
       },
-    });
+    })
   }
 
   async remove(id: number) {
-    const exists = await this.prisma.lancamentos.findUnique({ where: { id } });
-    if (!exists) throw new NotFoundException(`Lançamento #${id} não encontrado`);
-    await this.prisma.lancamentos.delete({ where: { id } });
+    const exists = await this.prisma.lancamentos.findUnique({ where: { id } })
+    if (!exists) throw new NotFoundException(`Lançamento #${id} não encontrado`)
+    await this.prisma.lancamentos.delete({ where: { id } })
   }
 
   async removeByContaCorrenteId(contaCorrenteId: number) {
     const result = await this.prisma.lancamentos.deleteMany({
       where: { contaCorrenteId },
-    });
-    return { deleted: result.count, contaCorrenteId };
+    })
+    return { deleted: result.count, contaCorrenteId }
   }
 
   async createBulk(dto: LancamentoBulkDto) {
     if (dto.clearExisting) {
       await this.prisma.lancamentos.deleteMany({
         where: { contaCorrenteId: dto.contaCorrenteId },
-      });
+      })
     }
 
     const items = dto.lancamentos?.length
       ? dto.lancamentos
       : dto.data
-        ? [{ data: dto.data, numeroDocumento: dto.numeroDocumento, observacao: dto.observacao, credito: dto.credito, debito: dto.debito }]
-        : [];
+        ? [
+            {
+              data: dto.data,
+              numeroDocumento: dto.numeroDocumento,
+              observacao: dto.observacao,
+              credito: dto.credito,
+              debito: dto.debito,
+            },
+          ]
+        : []
 
     const criados = await Promise.all(
       items.map((item) =>
@@ -60,25 +71,25 @@ export class LancamentoRepository {
           },
         }),
       ),
-    );
+    )
 
     return {
       success: true,
       message: `${criados.length} lançamento(s) criado(s)`,
       lancamentos: criados,
-    };
+    }
   }
 
   async createBulkForUser(userId: number, dto: LancamentoBulkDto) {
     const conta = await this.prisma.conta_corrente.findFirst({
       where: { colaboradorId: userId },
-    });
+    })
     if (!conta)
       throw new NotFoundException(
         `Conta corrente para colaborador #${userId} não encontrada`,
-      );
+      )
 
-    return this.createBulk({ ...dto, contaCorrenteId: conta.id });
+    return this.createBulk({ ...dto, contaCorrenteId: conta.id })
   }
 
   async createForUser(
@@ -87,11 +98,11 @@ export class LancamentoRepository {
   ) {
     const conta = await this.prisma.conta_corrente.findFirst({
       where: { colaboradorId: userId },
-    });
+    })
     if (!conta)
       throw new NotFoundException(
         `Conta corrente para colaborador #${userId} não encontrada`,
-      );
+      )
 
     return this.prisma.lancamentos.create({
       data: {
@@ -103,26 +114,26 @@ export class LancamentoRepository {
         debito: dto.debito ?? null,
         updatedAt: new Date(),
       },
-    });
+    })
   }
 
   async removeForUser(userId: number, lancamentoId: number) {
     const conta = await this.prisma.conta_corrente.findFirst({
       where: { colaboradorId: userId },
-    });
+    })
     if (!conta)
       throw new NotFoundException(
         `Conta corrente para colaborador #${userId} não encontrada`,
-      );
+      )
 
     const lancamento = await this.prisma.lancamentos.findFirst({
       where: { id: lancamentoId, contaCorrenteId: conta.id },
-    });
+    })
     if (!lancamento)
       throw new NotFoundException(
         `Lançamento #${lancamentoId} não encontrado para este usuário`,
-      );
+      )
 
-    await this.prisma.lancamentos.delete({ where: { id: lancamentoId } });
+    await this.prisma.lancamentos.delete({ where: { id: lancamentoId } })
   }
 }

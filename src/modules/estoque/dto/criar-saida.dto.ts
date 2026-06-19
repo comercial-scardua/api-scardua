@@ -1,5 +1,5 @@
-import { createZodDto } from 'nestjs-zod';
-import { z } from 'zod';
+import { createZodDto } from 'nestjs-zod'
+import { z } from 'zod'
 
 export const CriarSaidaSchema = z.object({
   produtoId: z.number().int().positive(),
@@ -9,6 +9,6 @@ export const CriarSaidaSchema = z.object({
   motivo: z.string().optional(),
   observacoes: z.string().optional(),
   empresaId: z.number().int().positive().optional().nullable(),
-});
+})
 
 export class CriarSaidaDto extends createZodDto(CriarSaidaSchema) {}
