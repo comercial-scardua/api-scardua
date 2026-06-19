@@ -12,6 +12,7 @@ import { AniversariantesModule } from './infra/aniversariantes.module'
 import { ErrosModule } from './infra/erros.module'
 import { EventosModule } from './infra/eventos.module'
 import { RelatoriosModule } from './infra/relatorios.module'
+import { UniformeModule } from './infra/uniforme.module'
 import { BancoHorasModule } from './modules/banco-horas/banco-horas.module'
 import { BridgeModule } from './modules/bridge/bridge.module'
 import { CaixaViagemModule } from './modules/caixa-viagem/caixa-viagem.module'
@@ -97,6 +98,7 @@ import { PrismaModule } from './prisma/prisma.module'
     RelatoriosModule,
     SgqModule,
     SuporteModule,
+    UniformeModule,
     UsuariosModule,
     // Pricing modules
     ImportacaoPrecosModule,

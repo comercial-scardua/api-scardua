@@ -24,6 +24,7 @@ export const PAGINAS = [
   'gerador-recibo',
   'tabela-de-preco',
   'epi',
+  'uniforme',
   'precificador',
   'simulacao-financeira',
 ] as const
