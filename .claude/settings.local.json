@@ -28,7 +28,8 @@
       "Read(//c/Users/angelo/Documents/GitHub/portal-scardua/src/app/api/**)",
       "Read(//c/Users/angelo/Documents/GitHub/portal-scardua/src/contexts/**)",
       "Read(//c/Users/angelo/Documents/GitHub/portal-scardua/src/**)",
-      "Bash(git status *)"
+      "Bash(git status *)",
+      "Bash(git commit *)"
     ]
   }
 }
