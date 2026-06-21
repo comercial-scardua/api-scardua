@@ -22,7 +22,13 @@
       "Bash(git add *)",
       "Bash(git commit -m ' *)",
       "Bash(npm list *)",
-      "PowerShell(npx tsc --noEmit)"
+      "PowerShell(npx tsc --noEmit)",
+      "Bash(grep -v \"^import\\\\|^//\")",
+      "Bash(echo \"EXIT: $?\")",
+      "Read(//c/Users/angelo/Documents/GitHub/portal-scardua/src/app/api/**)",
+      "Read(//c/Users/angelo/Documents/GitHub/portal-scardua/src/contexts/**)",
+      "Read(//c/Users/angelo/Documents/GitHub/portal-scardua/src/**)",
+      "Bash(git status *)"
     ]
   }
 }

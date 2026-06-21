@@ -37,7 +37,8 @@ pronto). Comece pelos menores de cada lote para ganhar ritmo.
 
 | Módulo | Rotas | UC? | Observações |
 |---|---|---|---|
-| `lancamento` | 4 | não | ligado a `conta_corrente` (model `lancamentos`). Pequeno, bom aquecimento. |
+| `lancamento` | 4 | não | ligado a `conta_corrent
+e` (model `lancamentos`). Pequeno, bom aquecimento. |
 | `lancamento-viagem` | 4 | não | ligado a `caixaviagem` (model `viagemlancamento`). |
 | `conta-corrente` | 20 | sim | tem use-cases; rotas `stats`, `todos`, `resumo/:id`, `ocultar`, `generate-termo`. **Rotas estáticas antes das `/:id`**. |
 | `caixa-viagem` | 24 | não | repo grande (`caixa-viagem.repository.ts`); `adiantamento`, `recalcularSaldos`, `generate-termo`, `stats`, `todos`. |

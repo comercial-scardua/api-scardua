@@ -9,50 +9,46 @@ import { SupabaseModule } from './common/supabase/supabase.module'
 import { EnvModule } from './env/env.module'
 import { envSchema } from './env/env.schema'
 import { AniversariantesModule } from './infra/aniversariantes.module'
-import { ErrosModule } from './infra/erros.module'
-import { EventosModule } from './infra/eventos.module'
-import { RelatoriosModule } from './infra/relatorios.module'
-import { UniformeModule } from './infra/uniforme.module'
-import { BancoHorasModule } from './modules/banco-horas/banco-horas.module'
-import { BridgeModule } from './modules/bridge/bridge.module'
-import { CaixaViagemModule } from './modules/caixa-viagem/caixa-viagem.module'
-import { CheckCpfModule } from './modules/check-cpf/check-cpf.module'
+import { BancoHorasModule } from './infra/banco-horas.module'
+import { CaixaViagemModule } from './infra/caixa-viagem.module'
+import { CheckCpfModule } from './infra/check-cpf.module'
 import { ColaboradoresModule } from './infra/colaboradores.module'
-import { ContaCorrenteModule } from './modules/conta-corrente/conta-corrente.module'
+import { ContaCorrenteModule } from './infra/conta-corrente.module'
 import { ContratosModule } from './infra/contratos.module'
-import { DebugModule } from './modules/debug/debug.module'
-import { DownloadModule } from './modules/download/download.module'
+import { DownloadModule } from './infra/download.module'
 import { EmpresasModule } from './infra/empresas.module'
-import { EpiModule } from './modules/epi/epi.module'
-import { EstoqueModule } from './modules/estoque/estoque.module'
-import { GestorEmpresasModule } from './modules/gestor-empresas/gestor-empresas.module'
-import { HealthModule } from './modules/health/health.module'
-import { ImgProxyModule } from './modules/img-proxy/img-proxy.module'
-import { ImportacaoPrecosModule } from './modules/importacao-precos/importacao-precos.module'
-import { LancamentoModule } from './modules/lancamento/lancamento.module'
-import { LancamentoViagemModule } from './modules/lancamento-viagem/lancamento-viagem.module'
-import { ManuaisModule } from './modules/manuais/manuais.module'
-import { MonitorRegistrosModule } from './modules/monitor-registros/monitor-registros.module'
+import { EpiModule } from './infra/epi.module'
+import { ErrosModule } from './infra/erros.module'
+import { EstoqueModule } from './infra/estoque.module'
+import { EventosModule } from './infra/eventos.module'
+import { GestorEmpresasModule } from './infra/gestor-empresas.module'
+import { HealthModule } from './infra/health.module'
+import { ImgProxyModule } from './infra/img-proxy.module'
+import { ImportacaoPrecosModule } from './infra/importacao-precos.module'
+import { LancamentoModule } from './infra/lancamento.module'
+import { LancamentoViagemModule } from './infra/lancamento-viagem.module'
+import { MonitorRegistrosModule } from './infra/monitor-registros.module'
 import { MovimentacaoModule } from './infra/movimentacao.module'
-import { NcmModule } from './modules/ncm/ncm.module'
-import { NcmCheckModule } from './modules/ncm-check/ncm-check.module'
-import { NcmUtilitiesModule } from './modules/ncm-utilities/ncm-utilities.module'
-import { OracleCredentialsModule } from './modules/oracle-credentials/oracle-credentials.module'
-import { OracleQueryModule } from './modules/oracle-query/oracle-query.module'
-import { OracleTestModule } from './modules/oracle-test/oracle-test.module'
+import { NcmModule } from './infra/ncm.module'
+import { NcmCheckModule } from './infra/ncm-check.module'
+import { NcmUtilitiesModule } from './infra/ncm-utilities.module'
+import { OracleCredentialsModule } from './infra/oracle-credentials.module'
+import { OracleTestModule } from './infra/oracle-test.module'
 import { PatrimoniosModule } from './infra/patrimonios.module'
-import { PermissoesModule } from './modules/permissoes/permissoes.module'
-import { PrecificadorModule } from './modules/precificador/precificador.module'
-import { PrecoVendaModule } from './modules/preco-venda/preco-venda.module'
-import { ProtectedModule } from './modules/protected/protected.module'
-import { ReportsModule } from './modules/reports/reports.module'
-import { SgqModule } from './modules/sgq/sgq.module'
-import { StatusModule } from './modules/status/status.module'
-import { SuporteModule } from './modules/suporte/suporte.module'
-import { TabelaDePrecoModule } from './modules/tabela-de-preco/tabela-de-preco.module'
-import { TestModulesModule } from './modules/test-modules/test-modules.module'
-import { UploadImageModule } from './modules/upload-image/upload-image.module'
+import { PermissoesModule } from './infra/permissoes.module'
+import { PrecificadorModule } from './infra/precificador.module'
+import { PrecoVendaModule } from './infra/preco-venda.module'
+import { ProtectedModule } from './infra/protected.module'
+import { RelatoriosModule } from './infra/relatorios.module'
+import { ReportsModule } from './infra/reports.module'
+import { SgqModule } from './infra/sgq.module'
+import { StatusModule } from './infra/status.module'
+import { SuporteModule } from './infra/suporte.module'
+import { TabelaDePrecoModule } from './infra/tabela-de-preco.module'
+import { UniformeModule } from './infra/uniforme.module'
+import { UploadImageModule } from './infra/upload-image.module'
 import { UsuariosModule } from './infra/usuarios.module'
+import { ManuaisModule } from './infra/manuais.module'
 import { PrismaModule } from './prisma/prisma.module'
 
 @Module({
@@ -112,19 +108,15 @@ import { PrismaModule } from './prisma/prisma.module'
     ReportsModule,
     TabelaDePrecoModule,
     // Oracle / Bridge modules
-    BridgeModule,
     OracleCredentialsModule,
-    OracleQueryModule,
     OracleTestModule,
     // Utility modules
     CheckCpfModule,
-    DebugModule,
     DownloadModule,
     HealthModule,
     ImgProxyModule,
     ProtectedModule,
     StatusModule,
-    TestModulesModule,
     UploadImageModule,
   ],
   providers: [

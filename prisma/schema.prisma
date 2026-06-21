@@ -1082,7 +1082,7 @@ model ticket_arquivos {
   @@index([ticket_id])
 }
 
-model users {
+model users { 
   id               String           @id
   nome             String           @db.VarChar(100)
   email            String           @unique @db.VarChar(150)
