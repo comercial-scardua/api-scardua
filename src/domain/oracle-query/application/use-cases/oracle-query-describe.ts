@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common'
-import { type Either, right } from '../../../../core/either'
 import { OracleBridgeService } from '../../../../common/oracle-bridge/oracle-bridge.service'
+import { type Either, right } from '../../../../core/either'
 
 type OracleQueryDescribeResponse = Either<null, any>
 
