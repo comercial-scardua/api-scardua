@@ -4,53 +4,50 @@ on:
   push:
     branches: [develop]
 
-env:
-  REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}-staging
-
 jobs:
-  build-and-push:
+  build:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
 
     steps:
       - uses: actions/checkout@v4
 
-      - uses: docker/login-action@v3
+      - uses: actions/setup-node@v4
         with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          node-version: 20
+          cache: npm
 
-      - uses: docker/metadata-action@v5
-        id: meta
-        with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-          tags: |
-            type=sha,prefix=staging-
-            type=raw,value=staging-latest
-
-      - uses: docker/build-push-action@v6
-        with:
-          context: .
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+      - run: npm ci --ignore-scripts
+      - run: npx prisma generate
+      - run: npx biome check --no-errors-on-unmatched
+      - run: npm run build
+      - run: npm test -- --passWithNoTests
 
   deploy:
-    needs: build-and-push
+    needs: build
     runs-on: ubuntu-latest
     environment: staging
 
     steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci --ignore-scripts
+      - run: npx prisma generate
+      - run: npm run build
+
       - name: Deploy to staging
+        env:
+          DEPLOY_HOST: ${{ secrets.STAGING_HOST }}
+          DEPLOY_USER: ${{ secrets.STAGING_USER }}
+          DEPLOY_KEY: ${{ secrets.STAGING_SSH_KEY }}
+          DEPLOY_PATH: ${{ secrets.STAGING_DEPLOY_PATH }}
         run: |
           echo "Deploy para homologação"
-          echo "Imagem: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:staging-latest"
-          # Adicione aqui o comando de deploy para seu ambiente
-          # Exemplos:
-          # - SSH para o servidor e docker pull + restart
-          # - kubectl set image deployment/api-staging ...
-          # - railway up / fly deploy / render deploy hook
+          # Configure aqui o método de deploy do seu ambiente:
+          # - rsync via SSH
+          # - Railway / Render / Fly.io CLI
+          # - Upload para VPS
