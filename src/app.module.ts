@@ -43,7 +43,6 @@ import { RelatoriosModule } from './infra/relatorios.module'
 import { ReportsModule } from './infra/reports.module'
 import { SgqModule } from './infra/sgq.module'
 import { StatusModule } from './infra/status.module'
-import { SuporteModule } from './infra/suporte.module'
 import { TabelaDePrecoModule } from './infra/tabela-de-preco.module'
 import { UniformeModule } from './infra/uniforme.module'
 import { UploadImageModule } from './infra/upload-image.module'
@@ -93,7 +92,6 @@ import { PrismaModule } from './prisma/prisma.module'
     PermissoesModule,
     RelatoriosModule,
     SgqModule,
-    SuporteModule,
     UniformeModule,
     UsuariosModule,
     // Pricing modules

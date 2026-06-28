@@ -12,11 +12,9 @@ import { GerarTermoPdfUseCase } from '../domain/banco-horas/application/use-case
 import { GerarTermosRegistrosUseCase } from '../domain/banco-horas/application/use-cases/gerar-termos-registros.use-case'
 import { ListarFuncionariosBancoHorasUseCase } from '../domain/banco-horas/application/use-cases/listar-funcionarios-banco-horas.use-case'
 import { ListarRegistrosUseCase } from '../domain/banco-horas/application/use-cases/listar-registros.use-case'
-import { ListarSaldosUseCase } from '../domain/banco-horas/application/use-cases/listar-saldos.use-case'
 import { ObterContaCorrenteUseCase } from '../domain/banco-horas/application/use-cases/obter-conta-corrente.use-case'
 import { ObterEstatisticasUseCase } from '../domain/banco-horas/application/use-cases/obter-estatisticas.use-case'
 import { ObterHorasUsuarioUseCase } from '../domain/banco-horas/application/use-cases/obter-horas-usuario.use-case'
-import { ObterSaldoHorasUseCase } from '../domain/banco-horas/application/use-cases/obter-saldo-horas.use-case'
 import { RegistrarPontoUseCase } from '../domain/banco-horas/application/use-cases/registrar-ponto.use-case'
 import { SincronizarContasUseCase } from '../domain/banco-horas/application/use-cases/sincronizar-contas.use-case'
 import { StatusSincronizacaoUseCase } from '../domain/banco-horas/application/use-cases/status-sincronizacao.use-case'
@@ -32,16 +30,13 @@ import { GerarRelatorioController } from './http/controllers/banco-horas/gerar-r
 import { GerarTermoController } from './http/controllers/banco-horas/gerar-termo.controller'
 import { GerarTermoAusenciaController } from './http/controllers/banco-horas/gerar-termo-ausencia.controller'
 import { GerarTermoAusenciaPdfController } from './http/controllers/banco-horas/gerar-termo-ausencia-pdf.controller'
-import { GerarTermoPdfGetController } from './http/controllers/banco-horas/gerar-termo-pdf-get.controller'
 import { GerarTermoPdfPostController } from './http/controllers/banco-horas/gerar-termo-pdf-post.controller'
 import { GerarTermosRegistrosController } from './http/controllers/banco-horas/gerar-termos-registros.controller'
 import { ListarFuncionariosController } from './http/controllers/banco-horas/listar-funcionarios.controller'
 import { ListarRegistrosController } from './http/controllers/banco-horas/listar-registros.controller'
-import { ListarSaldosController } from './http/controllers/banco-horas/listar-saldos.controller'
 import { ObterContaCorrenteController } from './http/controllers/banco-horas/obter-conta-corrente.controller'
 import { ObterEstatisticasController } from './http/controllers/banco-horas/obter-estatisticas.controller'
 import { ObterHorasUsuarioController } from './http/controllers/banco-horas/obter-horas-usuario.controller'
-import { ObterSaldoHorasController } from './http/controllers/banco-horas/obter-saldo-horas.controller'
 import { RegistrarPontoController } from './http/controllers/banco-horas/registrar-ponto.controller'
 import { SincronizarContasController } from './http/controllers/banco-horas/sincronizar-contas.controller'
 import { StatusSincronizacaoController } from './http/controllers/banco-horas/status-sincronizacao.controller'
@@ -51,7 +46,6 @@ import { StatusSincronizacaoController } from './http/controllers/banco-horas/st
     // Static routes FIRST
     RegistrarPontoController,
     ListarRegistrosController,
-    ListarSaldosController,
     ObterEstatisticasController,
     GerarRelatorioController,
     ObterContaCorrenteController,
@@ -72,8 +66,6 @@ import { StatusSincronizacaoController } from './http/controllers/banco-horas/st
     BuscarRegistroController,
     AtualizarRegistroController,
     DeletarRegistroController,
-    ObterSaldoHorasController,
-    GerarTermoPdfGetController,
   ],
   providers: [
     { provide: BancoHorasRepository, useClass: PrismaBancoHorasRepository },
@@ -82,8 +74,6 @@ import { StatusSincronizacaoController } from './http/controllers/banco-horas/st
     BuscarRegistroUseCase,
     AtualizarRegistroUseCase,
     DeletarRegistroUseCase,
-    ObterSaldoHorasUseCase,
-    ListarSaldosUseCase,
     ObterEstatisticasUseCase,
     GerarRelatorioUseCase,
     GerarTermoPdfUseCase,
