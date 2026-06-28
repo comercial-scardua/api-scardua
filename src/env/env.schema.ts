@@ -3,8 +3,8 @@ import { z } from 'zod'
 export const envSchema = z.object({
   DATABASE_URL: z.string().url(),
   JWT_SECRET: z.string(),
-  ORACLE_BRIDGE_URL: z.string().url().optional(),
-  BRIDGE_PROJECT_ID: z.string().optional(),
+  ORACLE_BRIDGE_URL: z.string().url(),
+  BRIDGE_PROJECT_ID: z.string(),
   SUPABASE_URL: z.string().url().optional(),
   SUPABASE_SERVICE_ROLE_KEY: z.string().optional(),
   PORT: z.coerce.number().default(3001),

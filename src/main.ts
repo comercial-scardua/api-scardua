@@ -1,3 +1,4 @@
+import helmet from '@fastify/helmet'
 import { NestFactory } from '@nestjs/core'
 import {
   FastifyAdapter,
@@ -16,6 +17,11 @@ async function bootstrap() {
   )
 
   const env = app.get(EnvService)
+  const isProduction = env.get('NODE_ENV') === 'production'
+
+  await app.register(helmet, {
+    contentSecurityPolicy: isProduction ? undefined : false,
+  })
 
   app.enableCors({
     origin: env.get('FRONTEND_URL').split(','),
@@ -28,23 +34,25 @@ async function bootstrap() {
 
   app.setGlobalPrefix('api')
 
-  const swaggerConfig = new DocumentBuilder()
-    .setTitle('Comercial Scardua API')
-    .setDescription('Backend NestJS — Comercial Scardua')
-    .setVersion('1.0')
-    .addBearerAuth()
-    .build()
+  if (!isProduction) {
+    const swaggerConfig = new DocumentBuilder()
+      .setTitle('Comercial Scardua API')
+      .setDescription('Backend NestJS — Comercial Scardua')
+      .setVersion('1.0')
+      .addBearerAuth()
+      .build()
 
-  SwaggerModule.setup(
-    'docs',
-    app,
-    SwaggerModule.createDocument(app, swaggerConfig),
-  )
+    SwaggerModule.setup(
+      'docs',
+      app,
+      SwaggerModule.createDocument(app, swaggerConfig),
+    )
+  }
 
   const port = env.get('PORT')
   await app.listen(port, '0.0.0.0')
   console.log(`[NestJS] http://localhost:${port}/api`)
-  console.log(`[Swagger] http://localhost:${port}/docs`)
+  if (!isProduction) console.log(`[Swagger] http://localhost:${port}/docs`)
 }
 
 bootstrap()

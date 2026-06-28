@@ -15,11 +15,8 @@ export class OracleBridgeService {
   private readonly projectId: string
 
   constructor(config: ConfigService) {
-    this.bridgeUrl =
-      config.get<string>('ORACLE_BRIDGE_URL') || 'http://164.152.55.67:5326'
-    this.projectId =
-      config.get<string>('BRIDGE_PROJECT_ID') ||
-      'prj_8BQdi1xRdnNK1Oe1jvACAUVATfMY'
+    this.bridgeUrl = config.getOrThrow<string>('ORACLE_BRIDGE_URL')
+    this.projectId = config.getOrThrow<string>('BRIDGE_PROJECT_ID')
   }
 
   async query<T = Record<string, unknown>>(

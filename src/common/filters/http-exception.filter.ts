@@ -27,7 +27,9 @@ export class AllExceptionsFilter implements ExceptionFilter {
     } else {
       status = HttpStatus.INTERNAL_SERVER_ERROR
       response = { message: 'Internal server error' }
-      this.logger.error(exception)
+      this.logger.error(
+        exception instanceof Error ? exception.message : 'Unknown error',
+      )
     }
 
     reply.status(status).send({

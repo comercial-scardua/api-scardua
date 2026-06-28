@@ -706,20 +706,35 @@ export class PrismaEpiRepository implements EpiRepository {
         select: { id: true, nomeEmpresa: true, numero: true, cidade: true },
         orderBy: { nomeEmpresa: 'asc' },
       }),
-      this.prisma.$queryRawUnsafe<
-        { epi_id: number; empresaId: number; saldo: string }[]
-      >(`
-        SELECT epi_id, empresaId,
-          SUM(CASE
-            WHEN tipo IN ('ENTRADA','DEVOLUCAO') THEN quantidade
-            WHEN tipo IN ('SAIDA','PERDA') THEN -quantidade
-            WHEN tipo = 'AJUSTE' THEN quantidade
-            ELSE 0
-          END) AS saldo
-        FROM epi_estoque_movimentacoes
-        WHERE empresaId IS NOT NULL${empresaId ? ` AND empresaId = ${empresaId}` : ''}
-        GROUP BY epi_id, empresaId
-      `),
+      empresaId
+        ? this.prisma.$queryRaw<
+            { epi_id: number; empresaId: number; saldo: string }[]
+          >`
+            SELECT epi_id, empresaId,
+              SUM(CASE
+                WHEN tipo IN ('ENTRADA','DEVOLUCAO') THEN quantidade
+                WHEN tipo IN ('SAIDA','PERDA') THEN -quantidade
+                WHEN tipo = 'AJUSTE' THEN quantidade
+                ELSE 0
+              END) AS saldo
+            FROM epi_estoque_movimentacoes
+            WHERE empresaId IS NOT NULL AND empresaId = ${empresaId}
+            GROUP BY epi_id, empresaId
+          `
+        : this.prisma.$queryRaw<
+            { epi_id: number; empresaId: number; saldo: string }[]
+          >`
+            SELECT epi_id, empresaId,
+              SUM(CASE
+                WHEN tipo IN ('ENTRADA','DEVOLUCAO') THEN quantidade
+                WHEN tipo IN ('SAIDA','PERDA') THEN -quantidade
+                WHEN tipo = 'AJUSTE' THEN quantidade
+                ELSE 0
+              END) AS saldo
+            FROM epi_estoque_movimentacoes
+            WHERE empresaId IS NOT NULL
+            GROUP BY epi_id, empresaId
+          `,
     ])
 
     const saldos: Record<number, Record<number, number>> = {}

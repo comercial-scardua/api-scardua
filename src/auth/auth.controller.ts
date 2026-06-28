@@ -83,7 +83,7 @@ export class AuthController {
   @ApiOperation({ summary: 'Verificar token de reset de senha' })
   checkResetPassword(@Query('token') token: string) {
     if (!token) throw new BadRequestException('Parâmetro "token" é obrigatório')
-    return { valid: !!token, token }
+    return { valid: !!token }
   }
 
   @Public()

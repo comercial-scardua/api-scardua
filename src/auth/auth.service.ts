@@ -28,7 +28,13 @@ export class AuthService {
       where: { OR: [{ email: dto.email }, { nome: dto.email }] },
     })
 
-    if (!user || !(await bcrypt.compare(dto.password, user.password))) {
+    const DUMMY_HASH =
+      '$2b$10$abcdefghijklmnopqrstuuABCDEFGHIJKLMNOPQRSTUVWXYZ012'
+    const passwordMatch = await bcrypt.compare(
+      dto.password,
+      user?.password ?? DUMMY_HASH,
+    )
+    if (!user || !passwordMatch) {
       throw new UnauthorizedException('Credenciais inválidas')
     }
 
@@ -39,7 +45,6 @@ export class AuthService {
         nome: user.nome,
         sobrenome: user.sobrenome,
         email: user.email,
-        cpf: user.cpf,
         role: user.role,
         foto: user.foto,
       },
@@ -92,7 +97,7 @@ export class AuthService {
       where: { OR: [{ nome: username }, { email: username }] },
       select: { id: true },
     })
-    return { exists: !!user, userId: user?.id ?? null }
+    return { exists: !!user }
   }
 
   async register(dto: {
