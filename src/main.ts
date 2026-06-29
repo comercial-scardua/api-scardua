@@ -19,7 +19,7 @@ async function bootstrap() {
   const env = app.get(EnvService)
   const isProduction = env.get('NODE_ENV') === 'production'
 
-  await app.register(helmet, {
+  await app.register(helmet as any, {
     contentSecurityPolicy: isProduction ? undefined : false,
   })
 
